@@ -14,7 +14,7 @@ export default function PublicNavbar() {
   return (
     <>
       {/* ALWAYS-ON FIXED MIX-BLEND-DIFFERENCE LOGO (UNIVERSALLY ADAPTS OVER ANY LIGHT/DARK SECTION) */}
-      <div className="fixed top-0 left-0 w-auto z-[60] px-6 py-5 md:px-12 md:py-6 pointer-events-auto mix-blend-difference">
+      <div className="fixed top-0 left-0 w-auto z-[100] px-6 py-5 md:px-12 md:py-6 pointer-events-auto mix-blend-difference">
         <TransitionLink href="/" className="flex items-center gap-2 group no-underline">
           <Logo3DText
             text="QYNESIS"
@@ -27,10 +27,10 @@ export default function PublicNavbar() {
 
       {/* MAIN TOP NAVBAR - RIGHT CONTROLS */}
       <nav
-        className="fixed top-0 left-0 right-0 z-[60] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none"
+        className="fixed top-0 left-0 right-0 z-[100] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none"
       >
         {/* Right Action Controls */}
-        <div className="flex items-center gap-3 md:gap-4 relative z-[60] pointer-events-auto">
+        <div className="flex items-center gap-3 md:gap-4 relative z-[100] pointer-events-auto">
           {/* Let's Talk CTA */}
           <TransitionLink
             href="/contact"
@@ -64,7 +64,7 @@ export default function PublicNavbar() {
         </div>
       </nav>
 
-      {/* EXPANDING SIDEBAR OVERLAY AT Z-40 */}
+      {/* EXPANDING SIDEBAR OVERLAY AT Z-110 / Z-120 */}
       <AnimatePresence>
         {isMenuOpen && (
           <>
@@ -75,7 +75,7 @@ export default function PublicNavbar() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.3 }}
               onClick={() => setIsMenuOpen(false)}
-              className="fixed inset-0 bg-black/70 backdrop-blur-xs z-30"
+              className="fixed inset-0 bg-black/70 backdrop-blur-xs z-[110]"
             />
 
             {/* Expanding White Sidebar Panel (Circular Radial Reveal from MENU button) */}
@@ -93,7 +93,7 @@ export default function PublicNavbar() {
                 duration: 0.65,
                 ease: [0.76, 0, 0.24, 1],
               }}
-              className="fixed top-3 bottom-3 right-3 md:top-4 md:bottom-4 md:right-4 z-40 w-[calc(100%-1.5rem)] max-w-md bg-white text-black rounded-lg p-8 md:p-12 pt-24 md:pt-28 flex flex-col justify-between shadow-2xl overflow-y-auto font-[family-name:var(--font-familjen)]"
+              className="fixed top-3 bottom-3 right-3 md:top-4 md:bottom-4 md:right-4 z-[120] w-[calc(100%-1.5rem)] max-w-md bg-white text-black rounded-lg p-8 md:p-12 pt-24 md:pt-28 flex flex-col justify-between shadow-2xl overflow-y-auto font-[family-name:var(--font-familjen)]"
             >
               {/* Drawer Main Navigation Links */}
               <div className="my-auto space-y-6">
