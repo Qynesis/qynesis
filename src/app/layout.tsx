@@ -4,6 +4,7 @@ import "./globals.css";
 import StoreProvider from "@/store/StoreProvider";
 import ThemeProvider from "@/components/ThemeProvider";
 import SmoothScrollProvider from "@/components/common/SmoothScrollProvider";
+import PageTransitionProvider from "@/components/transitions/PageTransitionProvider";
 import { Toaster } from "sonner";
 
 const familjenGrotesk = Familjen_Grotesk({
@@ -37,14 +38,16 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[#080808] text-white font-[family-name:var(--font-familjen)] transition-colors duration-200">
-        <StoreProvider>
-          <ThemeProvider>
-            <SmoothScrollProvider>
-              {children}
-            </SmoothScrollProvider>
-            <Toaster position="top-right" richColors />
-          </ThemeProvider>
-        </StoreProvider>
+        <PageTransitionProvider>
+          <StoreProvider>
+            <ThemeProvider>
+              <SmoothScrollProvider>
+                {children}
+              </SmoothScrollProvider>
+              <Toaster position="top-right" richColors />
+            </ThemeProvider>
+          </StoreProvider>
+        </PageTransitionProvider>
       </body>
     </html>
   );

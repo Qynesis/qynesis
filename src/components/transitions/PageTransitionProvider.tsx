@@ -7,15 +7,18 @@ import {
   TransitionVariant,
 } from "./PageTransitionContext";
 import SvgMorphTransition from "./SvgMorphTransition";
+import CinematicPreloader from "./CinematicPreloader";
 
 interface PageTransitionProviderProps {
   children: React.ReactNode;
   defaultVariant?: TransitionVariant;
+  enableInitialPreloader?: boolean;
 }
 
 export default function PageTransitionProvider({
   children,
   defaultVariant = "svg-curve",
+  enableInitialPreloader = true,
 }: PageTransitionProviderProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -23,9 +26,11 @@ export default function PageTransitionProvider({
   const [phase, setPhase] = useState<"idle" | "covering" | "covered" | "revealing">("idle");
   const [targetHref, setTargetHref] = useState<string | null>(null);
   const [variant, setVariant] = useState<TransitionVariant>(defaultVariant);
+  const [showPreloader, setShowPreloader] = useState(enableInitialPreloader);
+  const [forcePreloader, setForcePreloader] = useState(false);
   const pendingHrefRef = useRef<string | null>(null);
 
-  const isTransitioning = phase !== "idle";
+  const isTransitioning = phase !== "idle" || showPreloader;
 
   // Reset scroll to top cleanly
   const resetScroll = useCallback(() => {
@@ -44,18 +49,25 @@ export default function PageTransitionProvider({
       // Don't navigate if already navigating to the same target or on same page
       if (isTransitioning || href === pathname) return;
 
-      if (transitionVariant) {
-        setVariant(transitionVariant);
-      } else {
-        setVariant(defaultVariant);
-      }
-
+      const chosenVariant = transitionVariant || defaultVariant;
+      setVariant(chosenVariant);
       setTargetHref(href);
       pendingHrefRef.current = href;
-      setPhase("covering");
+
+      if (chosenVariant === "cinematic-preloader") {
+        setForcePreloader(true);
+        setShowPreloader(true);
+      } else {
+        setPhase("covering");
+      }
     },
     [isTransitioning, pathname, defaultVariant]
   );
+
+  const playPreloader = useCallback(() => {
+    setForcePreloader(true);
+    setShowPreloader(true);
+  }, []);
 
   // Step 2: Once the covering morph animation finishes
   const handleCovered = useCallback(() => {
@@ -86,12 +98,27 @@ export default function PageTransitionProvider({
     resetScroll();
   }, [resetScroll]);
 
+  // Handle preloader complete
+  const handlePreloaderComplete = useCallback(() => {
+    setShowPreloader(false);
+    setForcePreloader(false);
+
+    if (pendingHrefRef.current) {
+      const destination = pendingHrefRef.current;
+      router.push(destination);
+      pendingHrefRef.current = null;
+      setTargetHref(null);
+    }
+    resetScroll();
+  }, [router, resetScroll]);
+
   return (
     <PageTransitionContext.Provider
       value={{
         isTransitioning,
         variant,
         navigateWithTransition,
+        playPreloader,
         phase,
         setPhase,
         targetHref,
@@ -99,7 +126,14 @@ export default function PageTransitionProvider({
     >
       {children}
 
-      {/* REUSABLE TRANSITION OVERLAYS */}
+      {/* CINEMATIC PRELOADER ANIMATION (8-STAGE SVG & PARTICLES) */}
+      {showPreloader && (
+        <CinematicPreloader
+          onComplete={handlePreloaderComplete}
+        />
+      )}
+
+      {/* REUSABLE SVG MORPH TRANSITION OVERLAY */}
       {(variant === "svg-curve" || variant === "section-morph") && (
         <SvgMorphTransition
           phase={phase}

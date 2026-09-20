@@ -4,12 +4,18 @@ import React, { createContext, useContext } from "react";
 import Link, { LinkProps } from "next/link";
 import { usePathname } from "next/navigation";
 
-export type TransitionVariant = "svg-curve" | "section-morph" | "curtain" | "fade";
+export type TransitionVariant =
+  | "svg-curve"
+  | "section-morph"
+  | "curtain"
+  | "fade"
+  | "cinematic-preloader";
 
 interface PageTransitionContextType {
   isTransitioning: boolean;
   variant: TransitionVariant;
   navigateWithTransition: (href: string, variant?: TransitionVariant) => void;
+  playPreloader: () => void;
   phase: "idle" | "covering" | "covered" | "revealing";
   setPhase: (phase: "idle" | "covering" | "covered" | "revealing") => void;
   targetHref: string | null;
