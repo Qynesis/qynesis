@@ -6,173 +6,96 @@ import gsap from "gsap";
 interface CinematicPreloaderProps {
   onComplete?: () => void;
   speed?: number;
+  strokeWidth?: number;
 }
 
-// ─── QYNASIS exact SVG path data ──────────────────────────────────────────────
-// Viewbox: 0 0 680 160.
-// Generously kerned, perfectly proportioned geometric architectural letterforms.
-// Letters: Q (25-130), Y (145-210), N (235-305), A (330-400), S1 (425-490), I (515-548), S2 (575-640)
-const LETTER_DEFINITIONS = [
-  // Q
-  {
-    letter: "Q",
-    onset: 0,
-    paths: [
-      // Oval
-      "M 75 22 C 46 22 26 47 26 80 C 26 113 46 138 75 138 C 104 138 124 113 124 80 C 124 47 104 22 75 22 Z",
-      // Tail
-      "M 95 104 L 130 144",
-    ],
-  },
-  // Y
-  {
-    letter: "Y",
-    onset: 0.08,
-    paths: [
-      // Left branch
-      "M 145 22 L 178 78",
-      // Right branch
-      "M 210 22 L 178 78",
-      // Stem
-      "M 178 78 L 178 138",
-    ],
-  },
-  // N
-  {
-    letter: "N",
-    onset: 0.04,
-    paths: [
-      // Left vertical
-      "M 235 22 L 235 138",
-      // Diagonal
-      "M 235 22 L 305 138",
-      // Right vertical
-      "M 305 22 L 305 138",
-    ],
-  },
-  // A
-  {
-    letter: "A",
-    onset: 0.08,
-    paths: [
-      // Left leg
-      "M 335 138 L 368 22",
-      // Right leg
-      "M 368 22 L 400 138",
-      // Crossbar
-      "M 348 94 L 388 94",
-    ],
-  },
-  // S1
-  {
-    letter: "S",
-    onset: 0.06,
-    paths: [
-      "M 488 42 C 484 26 470 20 458 20 C 440 20 430 30 430 46 C 430 70 490 66 490 94 C 490 114 474 140 456 140 C 438 140 428 126 426 108",
-    ],
-  },
-  // I
-  {
-    letter: "I",
-    onset: 0.12,
-    paths: [
-      // Vertical stem
-      "M 532 22 L 532 138",
-      // Top serif
-      "M 518 22 L 546 22",
-      // Bottom serif
-      "M 518 138 L 546 138",
-    ],
-  },
-  // S2
-  {
-    letter: "S",
-    onset: 0.14,
-    paths: [
-      "M 638 42 C 634 26 620 20 608 20 C 590 20 580 30 580 46 C 580 70 640 66 640 94 C 640 114 624 140 606 140 C 588 140 578 126 576 108",
-    ],
-  },
+// ─── 42 VECTOR STROKE FRAGMENTS FORMING THE EXACT QYNASIS LOGO ─────────────
+// ViewBox: 0 0 960 200 (Center at x=480, y=100)
+// Every fragment belongs to a REAL LETTER.
+// At (x: 0, y: 0, rotation: 0, scale: 1), they assemble into ONE PERFECT QYNASIS.
+// There is NO separate text layer or hidden logo.
+interface FragmentSpec {
+  id: string;
+  letter: string;
+  d: string;
+  // Starting scatter offsets (in SVG units relative to its final resting coordinate)
+  startX: number;
+  startY: number;
+  startRotation: number;
+  staggerDelay: number;
+}
+
+const FRAGMENTS: FragmentSpec[] = [
+  // ── Q (8 fragments: cx = 136, r = 42) ──
+  { id: "q-1", letter: "Q", d: "M 136 58 A 42 42 0 0 0 94 100", startX: -850, startY: -450, startRotation: 45, staggerDelay: 0.02 },
+  { id: "q-2", letter: "Q", d: "M 94 100 A 42 42 0 0 0 136 142", startX: -920, startY: 280, startRotation: -40, staggerDelay: 0.08 },
+  { id: "q-3", letter: "Q", d: "M 136 142 A 42 42 0 0 0 166 129", startX: -780, startY: 650, startRotation: 60, staggerDelay: 0.16 },
+  { id: "q-4", letter: "Q", d: "M 166 129 A 42 42 0 0 0 178 100", startX: -680, startY: -580, startRotation: -35, staggerDelay: 0.10 },
+  { id: "q-5", letter: "Q", d: "M 178 100 A 42 42 0 0 0 136 58", startX: -980, startY: -120, startRotation: 25, staggerDelay: 0.05 },
+  { id: "q-6", letter: "Q", d: "M 128 92 L 148 112", startX: -420, startY: -780, startRotation: -65, staggerDelay: 0.19 },
+  { id: "q-7", letter: "Q", d: "M 148 112 L 168 132", startX: -550, startY: 720, startRotation: 55, staggerDelay: 0.13 },
+  { id: "q-8", letter: "Q", d: "M 168 132 L 188 152", startX: -820, startY: 820, startRotation: -25, staggerDelay: 0.23 },
+
+  // ── Y (5 fragments: cx = 256, meet at 256,102) ──
+  { id: "y-1", letter: "Y", d: "M 221 58 L 238.5 80", startX: -380, startY: -820, startRotation: -45, staggerDelay: 0.04 },
+  { id: "y-2", letter: "Y", d: "M 238.5 80 L 256 102", startX: -220, startY: -680, startRotation: 30, staggerDelay: 0.15 },
+  { id: "y-3", letter: "Y", d: "M 291 58 L 273.5 80", startX: 280, startY: -780, startRotation: -50, staggerDelay: 0.06 },
+  { id: "y-4", letter: "Y", d: "M 273.5 80 L 256 102", startX: 420, startY: -620, startRotation: 35, staggerDelay: 0.17 },
+  { id: "y-5", letter: "Y", d: "M 256 102 L 256 142", startX: -180, startY: 820, startRotation: 90, staggerDelay: 0.21 },
+
+  // ── N (6 fragments: cx = 376, left=341, right=411) ──
+  { id: "n-1", letter: "N", d: "M 341 58 L 341 100", startX: -320, startY: 780, startRotation: -20, staggerDelay: 0.03 },
+  { id: "n-2", letter: "N", d: "M 341 100 L 341 142", startX: 120, startY: 860, startRotation: 40, staggerDelay: 0.16 },
+  { id: "n-3", letter: "N", d: "M 341 58 L 376 100", startX: -60, startY: -820, startRotation: -60, staggerDelay: 0.09 },
+  { id: "n-4", letter: "N", d: "M 376 100 L 411 142", startX: 360, startY: 720, startRotation: 50, staggerDelay: 0.19 },
+  { id: "n-5", letter: "N", d: "M 411 58 L 411 100", startX: 220, startY: -780, startRotation: -30, staggerDelay: 0.05 },
+  { id: "n-6", letter: "N", d: "M 411 100 L 411 142", startX: 480, startY: 820, startRotation: 45, staggerDelay: 0.24 },
+
+  // ── A (6 fragments: cx = 480, apex=480,58) ──
+  { id: "a-1", letter: "A", d: "M 480 58 L 462.5 100", startX: 0, startY: -860, startRotation: 35, staggerDelay: 0.02 },
+  { id: "a-2", letter: "A", d: "M 462.5 100 L 445 142", startX: -460, startY: 760, startRotation: -55, staggerDelay: 0.12 },
+  { id: "a-3", letter: "A", d: "M 480 58 L 497.5 100", startX: 360, startY: -820, startRotation: -40, staggerDelay: 0.07 },
+  { id: "a-4", letter: "A", d: "M 497.5 100 L 515 142", startX: 560, startY: 860, startRotation: 60, staggerDelay: 0.20 },
+  { id: "a-5", letter: "A", d: "M 458 114 L 480 114", startX: -260, startY: 660, startRotation: 90, staggerDelay: 0.11 },
+  { id: "a-6", letter: "A", d: "M 480 114 L 502 114", startX: 320, startY: -640, startRotation: -90, staggerDelay: 0.17 },
+
+  // ── S1 (7 fragments: cx = 584) ──
+  { id: "s1-1", letter: "S", d: "M 614 74 C 610 65 602 60 594 58", startX: 620, startY: -760, startRotation: -45, staggerDelay: 0.04 },
+  { id: "s1-2", letter: "S", d: "M 594 58 C 579 58 564 62 558 72", startX: 820, startY: -620, startRotation: 50, staggerDelay: 0.14 },
+  { id: "s1-3", letter: "S", d: "M 558 72 C 554 80 560 88 572 92", startX: 470, startY: -860, startRotation: -30, staggerDelay: 0.08 },
+  { id: "s1-4", letter: "S", d: "M 572 92 C 584 96 598 100 606 106", startX: 720, startY: 360, startRotation: 75, staggerDelay: 0.21 },
+  { id: "s1-5", letter: "S", d: "M 606 106 C 616 114 614 124 604 132", startX: 660, startY: 760, startRotation: -60, staggerDelay: 0.12 },
+  { id: "s1-6", letter: "S", d: "M 604 132 C 596 138 582 138 572 136", startX: 860, startY: 720, startRotation: 40, staggerDelay: 0.18 },
+  { id: "s1-7", letter: "S", d: "M 572 136 C 564 134 558 128 554 122", startX: 520, startY: 860, startRotation: -25, staggerDelay: 0.25 },
+
+  // ── I (3 fragments: cx = 688) ──
+  { id: "i-1", letter: "I", d: "M 688 58 L 688 142", startX: 410, startY: 870, startRotation: 90, staggerDelay: 0.05 },
+  { id: "i-2", letter: "I", d: "M 674 58 L 702 58", startX: 660, startY: -820, startRotation: -45, staggerDelay: 0.14 },
+  { id: "i-3", letter: "I", d: "M 674 142 L 702 142", startX: 760, startY: 820, startRotation: 35, staggerDelay: 0.22 },
+
+  // ── S2 (7 fragments: cx = 808) ──
+  { id: "s2-1", letter: "S", d: "M 838 74 C 834 65 826 60 818 58", startX: 910, startY: -570, startRotation: -50, staggerDelay: 0.03 },
+  { id: "s2-2", letter: "S", d: "M 818 58 C 803 58 788 62 782 72", startX: 1060, startY: -320, startRotation: 40, staggerDelay: 0.13 },
+  { id: "s2-3", letter: "S", d: "M 782 72 C 778 80 784 88 796 92", startX: 810, startY: -820, startRotation: -35, staggerDelay: 0.07 },
+  { id: "s2-4", letter: "S", d: "M 796 92 C 808 96 822 100 830 106", startX: 1020, startY: 220, startRotation: 65, staggerDelay: 0.20 },
+  { id: "s2-5", letter: "S", d: "M 830 106 C 840 114 838 124 828 132", startX: 960, startY: 720, startRotation: -70, staggerDelay: 0.11 },
+  { id: "s2-6", letter: "S", d: "M 828 132 C 820 138 806 138 796 136", startX: 1120, startY: 570, startRotation: 45, staggerDelay: 0.17 },
+  { id: "s2-7", letter: "S", d: "M 796 136 C 788 134 782 128 778 122", startX: 860, startY: 870, startRotation: -30, staggerDelay: 0.24 },
 ];
 
-// Flat array of all letter paths
-const ALL_PATHS = LETTER_DEFINITIONS.flatMap((def) =>
-  def.paths.map((d) => ({ letter: def.letter, onset: def.onset, d }))
-);
-
-// ─── 44 fragments originating from all 4 viewport edges ───────────────────────
-type FragmentDef = {
-  id: number;
-  startXRatio: number;
-  startYRatio: number;
-  targetPathIndex: number;
-  cpXRatio: number;
-  cpYRatio: number;
-  strokeWidth: number;
-  initialOpacity: number;
-  stagger: number;
-};
-
-const FRAGMENT_DEFS: FragmentDef[] = [
-  // ── Top edge (y < 0) ──
-  { id: 0,  startXRatio: 0.06, startYRatio: -0.12, targetPathIndex: 0,  cpXRatio: 0.14, cpYRatio: 0.22, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.00 },
-  { id: 1,  startXRatio: 0.16, startYRatio: -0.08, targetPathIndex: 1,  cpXRatio: 0.22, cpYRatio: 0.18, strokeWidth: 1.4, initialOpacity: 0.85, stagger: 0.03 },
-  { id: 2,  startXRatio: 0.28, startYRatio: -0.15, targetPathIndex: 2,  cpXRatio: 0.28, cpYRatio: 0.26, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.06 },
-  { id: 3,  startXRatio: 0.42, startYRatio: -0.10, targetPathIndex: 4,  cpXRatio: 0.38, cpYRatio: 0.20, strokeWidth: 1.3, initialOpacity: 0.80, stagger: 0.02 },
-  { id: 4,  startXRatio: 0.54, startYRatio: -0.18, targetPathIndex: 6,  cpXRatio: 0.48, cpYRatio: 0.28, strokeWidth: 1.0, initialOpacity: 0.65, stagger: 0.07 },
-  { id: 5,  startXRatio: 0.68, startYRatio: -0.14, targetPathIndex: 8,  cpXRatio: 0.62, cpYRatio: 0.18, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.04 },
-  { id: 6,  startXRatio: 0.82, startYRatio: -0.08, targetPathIndex: 11, cpXRatio: 0.76, cpYRatio: 0.22, strokeWidth: 1.4, initialOpacity: 0.85, stagger: 0.08 },
-  { id: 7,  startXRatio: 0.94, startYRatio: -0.16, targetPathIndex: 15, cpXRatio: 0.88, cpYRatio: 0.25, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.05 },
-  { id: 8,  startXRatio: 0.34, startYRatio: -0.22, targetPathIndex: 5,  cpXRatio: 0.32, cpYRatio: 0.15, strokeWidth: 1.3, initialOpacity: 0.80, stagger: 0.09 },
-  { id: 9,  startXRatio: 0.62, startYRatio: -0.20, targetPathIndex: 10, cpXRatio: 0.56, cpYRatio: 0.24, strokeWidth: 1.0, initialOpacity: 0.70, stagger: 0.01 },
-  { id: 10, startXRatio: 0.76, startYRatio: -0.12, targetPathIndex: 12, cpXRatio: 0.70, cpYRatio: 0.16, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.10 },
-
-  // ── Bottom edge (y > 1) ──
-  { id: 11, startXRatio: 0.08, startYRatio: 1.12,  targetPathIndex: 0,  cpXRatio: 0.16, cpYRatio: 0.78, strokeWidth: 1.3, initialOpacity: 0.80, stagger: 0.02 },
-  { id: 12, startXRatio: 0.22, startYRatio: 1.16,  targetPathIndex: 1,  cpXRatio: 0.25, cpYRatio: 0.74, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.05 },
-  { id: 13, startXRatio: 0.36, startYRatio: 1.10,  targetPathIndex: 3,  cpXRatio: 0.34, cpYRatio: 0.82, strokeWidth: 1.4, initialOpacity: 0.85, stagger: 0.01 },
-  { id: 14, startXRatio: 0.48, startYRatio: 1.20,  targetPathIndex: 5,  cpXRatio: 0.44, cpYRatio: 0.72, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.07 },
-  { id: 15, startXRatio: 0.64, startYRatio: 1.14,  targetPathIndex: 7,  cpXRatio: 0.58, cpYRatio: 0.80, strokeWidth: 1.0, initialOpacity: 0.65, stagger: 0.04 },
-  { id: 16, startXRatio: 0.78, startYRatio: 1.18,  targetPathIndex: 9,  cpXRatio: 0.72, cpYRatio: 0.75, strokeWidth: 1.3, initialOpacity: 0.80, stagger: 0.08 },
-  { id: 17, startXRatio: 0.90, startYRatio: 1.12,  targetPathIndex: 14, cpXRatio: 0.84, cpYRatio: 0.84, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.03 },
-  { id: 18, startXRatio: 0.30, startYRatio: 1.22,  targetPathIndex: 2,  cpXRatio: 0.28, cpYRatio: 0.70, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.09 },
-  { id: 19, startXRatio: 0.58, startYRatio: 1.24,  targetPathIndex: 8,  cpXRatio: 0.52, cpYRatio: 0.76, strokeWidth: 1.4, initialOpacity: 0.85, stagger: 0.06 },
-  { id: 20, startXRatio: 0.72, startYRatio: 1.15,  targetPathIndex: 13, cpXRatio: 0.66, cpYRatio: 0.78, strokeWidth: 1.0, initialOpacity: 0.70, stagger: 0.00 },
-  { id: 21, startXRatio: 0.84, startYRatio: 1.25,  targetPathIndex: 15, cpXRatio: 0.80, cpYRatio: 0.72, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.11 },
-
-  // ── Left edge (x < 0) ──
-  { id: 22, startXRatio: -0.12, startYRatio: 0.18, targetPathIndex: 0,  cpXRatio: 0.18, cpYRatio: 0.30, strokeWidth: 1.3, initialOpacity: 0.80, stagger: 0.03 },
-  { id: 23, startXRatio: -0.16, startYRatio: 0.35, targetPathIndex: 1,  cpXRatio: 0.15, cpYRatio: 0.42, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.06 },
-  { id: 24, startXRatio: -0.10, startYRatio: 0.52, targetPathIndex: 2,  cpXRatio: 0.20, cpYRatio: 0.50, strokeWidth: 1.4, initialOpacity: 0.85, stagger: 0.01 },
-  { id: 25, startXRatio: -0.18, startYRatio: 0.68, targetPathIndex: 4,  cpXRatio: 0.14, cpYRatio: 0.60, strokeWidth: 1.0, initialOpacity: 0.65, stagger: 0.07 },
-  { id: 26, startXRatio: -0.14, startYRatio: 0.84, targetPathIndex: 5,  cpXRatio: 0.16, cpYRatio: 0.72, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.04 },
-  { id: 27, startXRatio: -0.22, startYRatio: 0.28, targetPathIndex: 3,  cpXRatio: 0.12, cpYRatio: 0.36, strokeWidth: 1.3, initialOpacity: 0.80, stagger: 0.08 },
-  { id: 28, startXRatio: -0.20, startYRatio: 0.60, targetPathIndex: 6,  cpXRatio: 0.10, cpYRatio: 0.58, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.02 },
-  { id: 29, startXRatio: -0.25, startYRatio: 0.44, targetPathIndex: 7,  cpXRatio: 0.08, cpYRatio: 0.46, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.10 },
-  { id: 30, startXRatio: -0.15, startYRatio: 0.76, targetPathIndex: 8,  cpXRatio: 0.18, cpYRatio: 0.68, strokeWidth: 1.0, initialOpacity: 0.65, stagger: 0.05 },
-  { id: 31, startXRatio: -0.08, startYRatio: 0.22, targetPathIndex: 9,  cpXRatio: 0.22, cpYRatio: 0.32, strokeWidth: 1.4, initialOpacity: 0.85, stagger: 0.00 },
-  { id: 32, startXRatio: -0.28, startYRatio: 0.88, targetPathIndex: 10, cpXRatio: 0.06, cpYRatio: 0.80, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.09 },
-
-  // ── Right edge (x > 1) ──
-  { id: 33, startXRatio: 1.12,  startYRatio: 0.16, targetPathIndex: 15, cpXRatio: 0.86, cpYRatio: 0.28, strokeWidth: 1.3, initialOpacity: 0.80, stagger: 0.02 },
-  { id: 34, startXRatio: 1.16,  startYRatio: 0.32, targetPathIndex: 14, cpXRatio: 0.84, cpYRatio: 0.38, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.05 },
-  { id: 35, startXRatio: 1.10,  startYRatio: 0.50, targetPathIndex: 13, cpXRatio: 0.82, cpYRatio: 0.52, strokeWidth: 1.4, initialOpacity: 0.85, stagger: 0.01 },
-  { id: 36, startXRatio: 1.18,  startYRatio: 0.66, targetPathIndex: 12, cpXRatio: 0.85, cpYRatio: 0.62, strokeWidth: 1.0, initialOpacity: 0.65, stagger: 0.07 },
-  { id: 37, startXRatio: 1.14,  startYRatio: 0.82, targetPathIndex: 11, cpXRatio: 0.80, cpYRatio: 0.74, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.04 },
-  { id: 38, startXRatio: 1.22,  startYRatio: 0.24, targetPathIndex: 10, cpXRatio: 0.88, cpYRatio: 0.32, strokeWidth: 1.3, initialOpacity: 0.80, stagger: 0.08 },
-  { id: 39, startXRatio: 1.20,  startYRatio: 0.58, targetPathIndex: 9,  cpXRatio: 0.90, cpYRatio: 0.56, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.03 },
-  { id: 40, startXRatio: 1.25,  startYRatio: 0.40, targetPathIndex: 7,  cpXRatio: 0.92, cpYRatio: 0.44, strokeWidth: 1.2, initialOpacity: 0.75, stagger: 0.09 },
-  { id: 41, startXRatio: 1.15,  startYRatio: 0.74, targetPathIndex: 6,  cpXRatio: 0.82, cpYRatio: 0.68, strokeWidth: 1.0, initialOpacity: 0.65, stagger: 0.06 },
-  { id: 42, startXRatio: 1.08,  startYRatio: 0.20, targetPathIndex: 4,  cpXRatio: 0.78, cpYRatio: 0.26, strokeWidth: 1.4, initialOpacity: 0.85, stagger: 0.00 },
-  { id: 43, startXRatio: 1.28,  startYRatio: 0.86, targetPathIndex: 2,  cpXRatio: 0.94, cpYRatio: 0.80, strokeWidth: 1.1, initialOpacity: 0.70, stagger: 0.10 },
-];
-
-export default function CinematicPreloader({ onComplete, speed = 1 }: CinematicPreloaderProps) {
+export default function CinematicPreloader({
+  onComplete,
+  speed = 1,
+  strokeWidth = 15,
+}: CinematicPreloaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const topCurtainRef = useRef<HTMLDivElement>(null);
+  const bottomCurtainRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const fragmentRefs = useRef<(SVGLineElement | null)[]>([]);
-  const pathRefs = useRef<(SVGPathElement | null)[]>([]);
-  const sweepRef = useRef<HTMLDivElement>(null);
-  const wipeLineRef = useRef<HTMLDivElement>(null);
+  const logoGroupRef = useRef<SVGGElement>(null);
+  const fragmentRefs = useRef<(SVGPathElement | null)[]>([]);
+  const centerLineRef = useRef<HTMLDivElement>(null);
+  const sweepRectRef = useRef<SVGRectElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
 
   const handleSkip = useCallback(() => {
@@ -180,10 +103,9 @@ export default function CinematicPreloader({ onComplete, speed = 1 }: CinematicP
       if (onComplete) onComplete();
       return;
     }
-    // Jump straight to the exit wipe sequence
     try {
-      tlRef.current.seek("exit");
-    } catch (e) {
+      tlRef.current.seek("compress");
+    } catch {
       if (onComplete) onComplete();
     }
   }, [onComplete]);
@@ -191,93 +113,12 @@ export default function CinematicPreloader({ onComplete, speed = 1 }: CinematicP
   useEffect(() => {
     document.body.style.overflow = "hidden";
 
-    // Use gsap.context so React 18/19 StrictMode double-mounting doesn't break or kill the animation!
     const ctx = gsap.context(() => {
-      const svg = svgRef.current;
-      if (!svg) return;
-
-      const VW = window.innerWidth || 1200;
-      const VH = window.innerHeight || 800;
-
-      // Ensure robust dimensions for SVG mapping
-      const svgRect = svg.getBoundingClientRect();
-      const svgWidth = svgRect.width > 0 ? svgRect.width : Math.min(VW * 0.45, 680);
-      const svgHeight = svgRect.height > 0 ? svgRect.height : svgWidth * (160 / 680);
-      const svgLeft = svgRect.left > 0 ? svgRect.left : (VW - svgWidth) / 2;
-      const svgTop = svgRect.top > 0 ? svgRect.top : (VH - svgHeight) / 2;
-
-      const scaleX = svgWidth / 680;
-      const scaleY = svgHeight / 160;
-
-      // ── 1. Measure and initialize all letter SVG paths ──
-      const paths = pathRefs.current;
-      const pathMidpoints: { x: number; y: number }[] = [];
-
-      paths.forEach((el) => {
-        if (!el) {
-          pathMidpoints.push({ x: VW / 2, y: VH / 2 });
-          return;
-        }
-        const len = el.getTotalLength() || 120;
-        const pt = el.getPointAtLength(len * 0.5);
-
-        // Convert path coordinate inside SVG to screen coordinates
-        const screenX = svgLeft + pt.x * scaleX;
-        const screenY = svgTop + pt.y * scaleY;
-        pathMidpoints.push({ x: screenX, y: screenY });
-
-        // Set initial state: strokeDashoffset hides the path, opacity 0
-        el.style.strokeDasharray = `${len}`;
-        el.style.strokeDashoffset = `${len}`;
-        el.style.opacity = "0";
-        el.style.stroke = "#EDEDED";
-        el.style.strokeWidth = "1.8";
-      });
-
-      // ── 2. Initialize fragment lines in screen space ──
-      const fragmentEls = fragmentRefs.current;
-      const fragData: {
-        startX: number;
-        startY: number;
-        cpX: number;
-        cpY: number;
-        destX: number;
-        destY: number;
-        fragLen: number;
-      }[] = [];
-
-      fragmentEls.forEach((el, i) => {
-        if (!el || !FRAGMENT_DEFS[i]) return;
-        const def = FRAGMENT_DEFS[i];
-
-        const startX = def.startXRatio * VW;
-        const startY = def.startYRatio * VH;
-        const cpX = def.cpXRatio * VW;
-        const cpY = def.cpYRatio * VH;
-
-        const targetIdx = def.targetPathIndex % pathMidpoints.length;
-        const targetPt = pathMidpoints[targetIdx] || { x: VW / 2, y: VH / 2 };
-        const destX = targetPt.x;
-        const destY = targetPt.y;
-
-        const fragLen = 14 + Math.random() * 22;
-        const angle = Math.atan2(destY - startY, destX - startX);
-
-        // Position line at off-screen start
-        el.setAttribute("x1", startX.toFixed(1));
-        el.setAttribute("y1", startY.toFixed(1));
-        el.setAttribute("x2", (startX + Math.cos(angle) * fragLen).toFixed(1));
-        el.setAttribute("y2", (startY + Math.sin(angle) * fragLen).toFixed(1));
-        el.style.opacity = "0";
-        el.style.stroke = "#EDEDED";
-        el.style.strokeWidth = String(def.strokeWidth);
-
-        fragData[i] = { startX, startY, cpX, cpY, destX, destY, fragLen };
-      });
-
-      // ── 3. Build GSAP Master Timeline ──
       const dur = 1 / speed;
+
+      // ── BUILD MASTER GSAP TIMELINE ──────────────────────────────────────────
       const tl = gsap.timeline({
+        defaults: { ease: "power3.inOut" },
         onComplete: () => {
           document.body.style.overflow = "";
           if (onComplete) onComplete();
@@ -285,159 +126,172 @@ export default function CinematicPreloader({ onComplete, speed = 1 }: CinematicP
       });
       tlRef.current = tl;
 
-      // Define clear chronological milestone labels
-      const T_START = 0;
-      const T_ENTER = 0.15 * dur;
-      const T_CONSTRUCT = 0.9 * dur;
-      const T_CLEAN = 1.9 * dur;
-      const T_SHINE = 2.3 * dur;
-      const T_HOLD = 2.7 * dur;
-      const T_EXIT = 3.05 * dur;
+      // Milestone labels:
+      // 0.00 – 0.30s: Pure black, center empty
+      // 0.30 – 0.70s: Real fragments enter from edges
+      // 0.70 – 1.40s: Fragments travel toward center
+      // 1.40 – 1.90s: Fragments begin connecting (partial letters visible)
+      // 1.90 – 2.20s: Fragments smoothly snap into final SVG coordinates
+      // 2.20 – 2.80s: ABSOLUTE STILLNESS. The assembled SVG itself remains.
+      // 2.80 – 3.10s: Light sweep across assembled SVG
+      // 3.10 – 3.35s: Logo compresses vertically into line
+      // 3.35 – 3.55s: Horizontal line expands
+      // 3.55 – 3.80s: Top & bottom curtains split open revealing homepage
+      const T_BLACK = 0;
+      const T_ENTER = 0.30 * dur;
+      const T_STILLNESS = 2.20 * dur;
+      const T_SWEEP = 2.75 * dur;
+      const T_COMPRESS = 3.10 * dur;
+      const T_EXPAND = 3.35 * dur;
+      const T_SPLIT = 3.55 * dur;
 
-      tl.addLabel("start", T_START);
+      tl.addLabel("black", T_BLACK);
       tl.addLabel("enter", T_ENTER);
-      tl.addLabel("construct", T_CONSTRUCT);
-      tl.addLabel("clean", T_CLEAN);
-      tl.addLabel("shine", T_SHINE);
-      tl.addLabel("hold", T_HOLD);
-      tl.addLabel("exit", T_EXIT);
+      tl.addLabel("stillness", T_STILLNESS);
+      tl.addLabel("sweep", T_SWEEP);
+      tl.addLabel("compress", T_COMPRESS);
+      tl.addLabel("expand", T_EXPAND);
+      tl.addLabel("split", T_SPLIT);
 
-      // ── Phase 1 & 2: Fragments fly in from screen edges and converge ──
-      fragmentEls.forEach((el, i) => {
-        if (!el || !fragData[i]) return;
-        const def = FRAGMENT_DEFS[i];
-        const d = fragData[i];
+      // Initial curtain states
+      if (topCurtainRef.current) gsap.set(topCurtainRef.current, { yPercent: 0 });
+      if (bottomCurtainRef.current) gsap.set(bottomCurtainRef.current, { yPercent: 0 });
+      if (centerLineRef.current) gsap.set(centerLineRef.current, { scaleX: 0, opacity: 0 });
+      if (sweepRectRef.current) gsap.set(sweepRectRef.current, { opacity: 0, x: -150 });
 
-        const enterTime = T_ENTER + def.stagger * dur;
-        const travelDur = (0.75 + Math.random() * 0.2) * dur;
+      // ── ANIMATE EACH REAL FRAGMENT FROM SCATTERED POSITION TO SVG REST (0,0) ──
+      FRAGMENTS.forEach((frag, idx) => {
+        const el = fragmentRefs.current[idx];
+        if (!el) return;
 
-        // Fade fragment in as it enters viewport
-        tl.to(el, { opacity: def.initialOpacity, duration: 0.15 * dur, ease: "power1.out" }, enterTime);
+        // Transform origin at the fragment's own geometric center for natural tumbling
+        gsap.set(el, { transformOrigin: "50% 50%" });
 
-        // Travel along quadratic curve to letter stroke midpoint
-        const progressObj = { p: 0 };
-        tl.to(
-          progressObj,
-          {
-            p: 1,
-            duration: travelDur,
-            ease: "power2.inOut",
-            onUpdate: () => {
-              const p = progressObj.p;
-              const ix = (1 - p) * (1 - p) * d.startX + 2 * (1 - p) * p * d.cpX + p * p * d.destX;
-              const iy = (1 - p) * (1 - p) * d.startY + 2 * (1 - p) * p * d.cpY + p * p * d.destY;
-              const curAngle = Math.atan2(d.destY - iy, d.destX - ix);
-              const curLen = d.fragLen * (1 - p * 0.55);
+        const startTime = T_ENTER + frag.staggerDelay * dur;
+        const assembleDuration = (1.80 - frag.staggerDelay * 0.5) * dur;
 
-              el.setAttribute("x1", ix.toFixed(1));
-              el.setAttribute("y1", iy.toFixed(1));
-              el.setAttribute("x2", (ix + Math.cos(curAngle) * curLen).toFixed(1));
-              el.setAttribute("y2", (iy + Math.sin(curAngle) * curLen).toFixed(1));
-            },
-          },
-          enterTime + 0.02
+        // 1. Fade in from black as it enters the viewport
+        tl.fromTo(
+          el,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.35 * dur, ease: "power2.out" },
+          startTime
         );
 
-        // Fade fragment out as letter strokes solidify
-        tl.to(el, { opacity: 0, duration: 0.3 * dur, ease: "power2.in" }, T_CONSTRUCT + def.stagger * dur + 0.1);
-      });
-
-      // ── Phase 3: Letter strokes draw themselves in via strokeDashoffset ──
-      paths.forEach((el, i) => {
-        if (!el) return;
-        const info = ALL_PATHS[i];
-        const onset = info.onset * dur;
-        const drawDur = (0.55 + Math.random() * 0.15) * dur;
-        const startTime = T_CONSTRUCT + onset;
-
-        // Reveal stroke
-        tl.to(el, { opacity: 1, duration: 0.12 * dur }, startTime);
-
-        // Animate strokeDashoffset to 0
-        tl.to(
+        // 2. Physical flight: from scattered (startX, startY, startRotation) back to (0, 0, 0)
+        // Because GSAP animates to (0,0), it lands on its EXACT SVG coordinate!
+        tl.fromTo(
           el,
           {
-            strokeDashoffset: 0,
-            duration: drawDur,
-            ease: "power3.inOut",
+            x: frag.startX,
+            y: frag.startY,
+            rotation: frag.startRotation,
+            scale: 0.92,
+          },
+          {
+            x: 0,
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            duration: assembleDuration,
+            ease: "expo.out",
           },
           startTime
         );
       });
 
-      // ── Phase 4: Clean & sharpen strokes ──
-      paths.forEach((el) => {
-        if (!el) return;
-        tl.to(
-          el,
-          {
-            stroke: "#FFFFFF",
-            strokeWidth: 1.8,
-            duration: 0.3 * dur,
-            ease: "power2.inOut",
-          },
-          T_CLEAN
-        );
-      });
+      // ── 2.20s – 2.75s: ABSOLUTE STILLNESS ──────────────────────────────────
+      // The assembled SVG itself remains visible. ZERO text elements.
 
-      // ── Phase 5: Light sweep across wordmark ──
-      if (sweepRef.current) {
+      // ── 2.75s – 3.05s: SUBTLE LIGHT SWEEP ACROSS THE ASSEMBLED SVG ─────────
+      if (sweepRectRef.current) {
+        tl.to(sweepRectRef.current, { opacity: 0.85, duration: 0.06 * dur }, T_SWEEP);
         tl.fromTo(
-          sweepRef.current,
-          { x: "-110%", opacity: 0.9 },
-          { x: "210%", opacity: 0.9, duration: 0.5 * dur, ease: "power2.inOut" },
-          T_SHINE
+          sweepRectRef.current,
+          { x: 30 },
+          { x: 880, duration: 0.34 * dur, ease: "power2.inOut" },
+          T_SWEEP
         );
+        tl.to(sweepRectRef.current, { opacity: 0, duration: 0.08 * dur }, T_SWEEP + 0.28 * dur);
       }
 
-      // ── Phase 6 & 7: Vertical compression, wipe line, reveal ──
-      if (svgRef.current) {
+      // ── 3.10s – 3.35s: VERTICAL LOGO COMPRESSION INTO HORIZONTAL LINE ───────
+      if (logoGroupRef.current) {
         tl.to(
-          svgRef.current,
+          logoGroupRef.current,
           {
             scaleY: 0.02,
-            duration: 0.28 * dur,
+            duration: 0.22 * dur,
             ease: "power4.inOut",
             transformOrigin: "50% 50%",
           },
-          T_EXIT
+          T_COMPRESS
         );
         tl.to(
-          svgRef.current,
+          logoGroupRef.current,
           {
             opacity: 0,
-            duration: 0.1 * dur,
+            duration: 0.08 * dur,
             ease: "power2.in",
           },
-          T_EXIT + 0.2 * dur
+          T_COMPRESS + 0.16 * dur
         );
       }
 
-      // Horizontal wipe line flares open and expands
-      if (wipeLineRef.current) {
+      // Center bright flare line flares open
+      if (centerLineRef.current) {
         tl.fromTo(
-          wipeLineRef.current,
-          { scaleX: 0, opacity: 1 },
-          { scaleX: 1, opacity: 1, duration: 0.25 * dur, ease: "expo.inOut" },
-          T_EXIT + 0.12 * dur
+          centerLineRef.current,
+          { scaleX: 0.15, opacity: 0 },
+          {
+            scaleX: 1,
+            opacity: 1,
+            duration: 0.22 * dur,
+            ease: "expo.inOut",
+          },
+          T_EXPAND - 0.04 * dur
         );
       }
 
-      // Container fades out to reveal home page
-      if (containerRef.current) {
+      // ── 3.55s – 3.80s: TOP & BOTTOM CURTAIN SPLIT REVEAL ───────────────────
+      // Top curtain moves UP, bottom curtain moves DOWN, revealing the homepage
+      if (topCurtainRef.current) {
         tl.to(
-          containerRef.current,
+          topCurtainRef.current,
+          {
+            yPercent: -100,
+            duration: 0.28 * dur,
+            ease: "power3.inOut",
+          },
+          T_SPLIT
+        );
+      }
+      if (bottomCurtainRef.current) {
+        tl.to(
+          bottomCurtainRef.current,
+          {
+            yPercent: 100,
+            duration: 0.28 * dur,
+            ease: "power3.inOut",
+          },
+          T_SPLIT
+        );
+      }
+
+      // Center line fades as curtains part
+      if (centerLineRef.current) {
+        tl.to(
+          centerLineRef.current,
           {
             opacity: 0,
-            duration: 0.22 * dur,
-            ease: "power2.inOut",
+            duration: 0.14 * dur,
+            ease: "power2.out",
           },
-          T_EXIT + 0.38 * dur
+          T_SPLIT + 0.04 * dur
         );
       }
     }, containerRef);
 
-    // Keyboard shortcut (Escape or Space to skip)
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" || e.key === " ") {
         handleSkip();
@@ -456,109 +310,108 @@ export default function CinematicPreloader({ onComplete, speed = 1 }: CinematicP
     <div
       ref={containerRef}
       onClick={handleSkip}
-      className="fixed inset-0 flex items-center justify-center overflow-hidden cursor-pointer"
-      style={{ zIndex: 999999, background: "#050505" }}
+      className="fixed inset-0 overflow-hidden cursor-pointer select-none"
+      style={{ zIndex: 999999 }}
       title="Click or press ESC to skip"
     >
-      {/* ── Screen-space overlay SVG for edge fragment lines ── */}
-      <svg
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        xmlns="http://www.w3.org/2000/svg"
-        style={{ overflow: "visible" }}
-      >
-        {FRAGMENT_DEFS.map((def) => (
-          <line
-            key={def.id}
-            ref={(el) => {
-              fragmentRefs.current[def.id] = el;
-            }}
-            x1="0"
-            y1="0"
-            x2="0"
-            y2="0"
-            stroke="#EDEDED"
-            strokeWidth={def.strokeWidth}
-            strokeLinecap="round"
-            opacity="0"
-          />
-        ))}
-      </svg>
-
-      {/* ── Wordmark SVG: Exactly ONE QYNASIS instance ── */}
-      <svg
-        ref={svgRef}
-        viewBox="0 0 680 160"
-        className="pointer-events-none select-none"
-        style={{
-          width: "clamp(300px, 46vw, 680px)",
-          height: "auto",
-          overflow: "visible",
-          position: "relative",
-          zIndex: 2,
-        }}
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        {ALL_PATHS.map((item, idx) => (
-          <path
-            key={idx}
-            ref={(el) => {
-              pathRefs.current[idx] = el;
-            }}
-            d={item.d}
-            stroke="#EDEDED"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            fill="none"
-            opacity="0"
-          />
-        ))}
-      </svg>
-
-      {/* ── High-speed light sweep gradient ── */}
+      {/* ── TOP BLACK CURTAIN (splits upward on exit) ── */}
       <div
-        ref={sweepRef}
-        className="absolute pointer-events-none"
-        style={{
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100%",
-          background:
-            "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.06) 35%, rgba(255,255,255,0.35) 50%, rgba(255,255,255,0.06) 65%, transparent 100%)",
-          transform: "translateX(-110%)",
-          zIndex: 3,
-          mixBlendMode: "screen",
-        }}
+        ref={topCurtainRef}
+        className="absolute top-0 left-0 right-0 h-1/2 bg-[#050505] pointer-events-none will-change-transform"
+        style={{ zIndex: 10 }}
       />
 
-      {/* ── Horizontal wipe line flare ── */}
+      {/* ── BOTTOM BLACK CURTAIN (splits downward on exit) ── */}
       <div
-        ref={wipeLineRef}
-        className="absolute pointer-events-none"
-        style={{
-          top: "50%",
-          left: 0,
-          width: "100%",
-          height: "2px",
-          background: "linear-gradient(90deg, transparent, #ffffff, transparent)",
-          boxShadow: "0 0 24px 6px rgba(255,255,255,0.6)",
-          transform: "scaleX(0)",
-          transformOrigin: "50% 50%",
-          marginTop: "-1px",
-          zIndex: 4,
-        }}
+        ref={bottomCurtainRef}
+        className="absolute bottom-0 left-0 right-0 h-1/2 bg-[#050505] pointer-events-none will-change-transform"
+        style={{ zIndex: 10 }}
       />
 
-      {/* Minimal technical hint */}
-      <div className="absolute bottom-6 right-8 pointer-events-none" style={{ zIndex: 5 }}>
+      {/* ── STAGE: THE EXACT VECTOR SVG WORDMARK ── */}
+      <div
+        className="absolute inset-0 flex items-center justify-center pointer-events-none px-4 md:px-8"
+        style={{ zIndex: 20 }}
+      >
+        <svg
+          ref={svgRef}
+          viewBox="80 48 780 110"
+          className="w-[94vw] max-w-[1360px] h-auto overflow-visible select-none"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            {/* Subtle light sweep gradient */}
+            <linearGradient id="qynasis-sweep" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0" />
+              <stop offset="40%" stopColor="#FFFFFF" stopOpacity="0.1" />
+              <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.8" />
+              <stop offset="60%" stopColor="#FFFFFF" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+
+          {/* 
+            THE QYNASIS LOGO:
+            Formed ENTIRELY by the 42 vector stroke fragments.
+            When x=0, y=0, rotation=0, these paths assemble into the complete logo.
+            NO HTML text. NO separate font layer.
+          */}
+          <g id="qynasis-logo" ref={logoGroupRef}>
+            {FRAGMENTS.map((frag, idx) => (
+              <path
+                key={frag.id}
+                id={frag.id}
+                ref={(el) => {
+                  fragmentRefs.current[idx] = el;
+                }}
+                d={frag.d}
+                stroke="#FFFFFF"
+                strokeWidth={strokeWidth}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                fill="none"
+              />
+            ))}
+
+            {/* Light sweep rectangle traversing typography */}
+            <rect
+              ref={sweepRectRef}
+              x="50"
+              y="48"
+              width="90"
+              height="110"
+              fill="url(#qynasis-sweep)"
+              opacity="0"
+              style={{ mixBlendMode: "screen", pointerEvents: "none" }}
+            />
+          </g>
+        </svg>
+
+        {/* ── Center horizontal compression & flare line ── */}
+        <div
+          ref={centerLineRef}
+          className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[2px] bg-white pointer-events-none"
+          style={{
+            boxShadow: "0 0 20px 4px rgba(255,255,255,0.85), 0 0 6px 1px rgba(255,255,255,1)",
+            transform: "scaleX(0)",
+            transformOrigin: "50% 50%",
+            zIndex: 30,
+          }}
+        />
+      </div>
+
+      {/* ── Minimal Technical Skip Hint ── */}
+      <div
+        className="absolute bottom-6 right-8 pointer-events-none"
+        style={{ zIndex: 40 }}
+      >
         <span
           style={{
             fontFamily: "monospace",
             fontSize: "10px",
             letterSpacing: "0.25em",
-            color: "rgba(255,255,255,0.25)",
+            color: "rgba(255,255,255,0.22)",
             textTransform: "uppercase",
           }}
         >
@@ -566,8 +419,11 @@ export default function CinematicPreloader({ onComplete, speed = 1 }: CinematicP
         </span>
       </div>
 
-      {/* Technical brand watermark */}
-      <div className="absolute bottom-6 left-8 hidden sm:block pointer-events-none" style={{ zIndex: 5 }}>
+      {/* ── Minimal Brand Footnote ── */}
+      <div
+        className="absolute bottom-6 left-8 hidden sm:block pointer-events-none"
+        style={{ zIndex: 40 }}
+      >
         <span
           style={{
             fontFamily: "monospace",
