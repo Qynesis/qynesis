@@ -5,6 +5,7 @@ import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import ServicesSection from "./ServicesSection";
+import { TransitionLink } from "@/components/transitions/PageTransitionContext";
 
 import { PROJECTS, ProjectData } from "@/data/projects";
 export { PROJECTS, type ProjectData };
@@ -403,14 +404,14 @@ export default function GallerySection() {
                   platforms.
                 </span>
               </h3>
-              <Link
+              <TransitionLink
                 ref={overviewCtaRef}
                 href="/work"
                 className="font-mono text-xs uppercase tracking-widest text-neutral-900 border-b border-black/40 pb-1 hover:border-black transition-colors no-underline inline-flex items-center gap-2 group will-change-transform"
               >
                 VIEW ALL PROJECTS
                 <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
-              </Link>
+              </TransitionLink>
             </div>
           </div>
         </div>

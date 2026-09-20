@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
+import { TransitionLink } from "@/components/transitions/PageTransitionContext";
 import { ArrowUpRight } from "lucide-react";
 import ScrollTextReveal from "@/components/reuseable/ScrollTextReveal";
 import FocusInContractText from "@/components/reuseable/FocusInContractText";
@@ -52,7 +52,7 @@ export default function AboutSection() {
 
               {/* More About Us CTA Button */}
               <div>
-                <Link
+                <TransitionLink
                   href="/about"
                   onMouseEnter={() => setIsHovered(true)}
                   onMouseLeave={() => setIsHovered(false)}
@@ -62,7 +62,7 @@ export default function AboutSection() {
                     MORE ABOUT US
                   </FocusInContractText>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white" />
-                </Link>
+                </TransitionLink>
               </div>
             </div>
           </div>
