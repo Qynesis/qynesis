@@ -16,15 +16,16 @@ export default function SmoothScrollProvider({
     // Register GSAP ScrollTrigger plugin
     gsap.registerPlugin(ScrollTrigger);
 
-    // Initialize Lenis smooth scroll
+    // Initialize Lenis smooth scroll with responsive, snappy tuning
     const lenis = new Lenis({
-      duration: 1.2,
+      duration: 0.9,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 1,
-      touchMultiplier: 1.8,
+      wheelMultiplier: 1.05,
+      touchMultiplier: 1.5,
+      autoResize: true,
     });
 
     // Synchronize Lenis scroll position with GSAP ScrollTrigger

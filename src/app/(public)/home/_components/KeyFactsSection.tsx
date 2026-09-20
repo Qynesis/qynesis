@@ -219,13 +219,6 @@ export default function KeyFactsSection() {
             </div>
           </div>
         </div>
-
-        {/* BOTTOM BUSINESS PARTNERS LABEL */}
-        <div className="mt-20 md:mt-28 text-center">
-          <span className="font-mono text-xs uppercase tracking-widest text-neutral-500 font-medium block">
-            OUR BUSINESS PARTNERS
-          </span>
-        </div>
       </div>
     </section>
   );
