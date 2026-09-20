@@ -30,6 +30,7 @@ export default function SmoothScrollProvider({
 
     // Synchronize Lenis scroll position with GSAP ScrollTrigger
     lenis.on("scroll", ScrollTrigger.update);
+    (window as any).__lenis = lenis;
 
     const updateFn = (time: number) => {
       lenis.raf(time * 1000);

@@ -2,7 +2,7 @@ import React from "react";
 import Banner from "./_components/banner";
 import AboutSection from "./_components/about";
 import InfiniteMarqueeBlinds from "@/components/reuseable/InfiniteMarqueeBlinds";
-import ProjectsHorizontalSection from "./_components/ProjectsHorizontalSection";
+import GallerySection from "./_components/GallerySection";
 
 export default function HomePage() {
   return (
@@ -10,7 +10,7 @@ export default function HomePage() {
       <Banner />
       <AboutSection />
       <InfiniteMarqueeBlinds />
-      <ProjectsHorizontalSection />
+      <GallerySection />
     </div>
   );
 }

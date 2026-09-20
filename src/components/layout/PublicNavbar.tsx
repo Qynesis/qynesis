@@ -26,10 +26,10 @@ export default function PublicNavbar() {
 
       {/* MAIN TOP NAVBAR - RIGHT CONTROLS */}
       <nav
-        className="sticky top-0 z-50 w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end"
+        className="fixed top-0 left-0 right-0 z-[60] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none"
       >
         {/* Right Action Controls */}
-        <div className="flex items-center gap-3 md:gap-4 relative z-50">
+        <div className="flex items-center gap-3 md:gap-4 relative z-[60] pointer-events-auto">
           {/* Let's Talk CTA */}
           <Link
             href="/contact"

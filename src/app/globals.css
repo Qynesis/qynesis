@@ -185,6 +185,9 @@
     @apply bg-background text-foreground;
     font-family: var(--font-familjen), sans-serif !important;
   }
+  html, body {
+    overflow-x: clip;
+  }
 
   /* ── Theme switch: View Transitions API ──────────────────
      Radial reveal from the toggle button position.

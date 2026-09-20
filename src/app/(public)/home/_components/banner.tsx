@@ -47,7 +47,7 @@ export default function Banner() {
             className="relative w-full min-h-[calc(100vh-80px)] flex flex-col justify-between px-6 md:px-12 bg-[#070707] text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none"
         >
             {/* TOP LEFT HERO HEADLINE */}
-            <div className="relative z-10 mt-6 max-w-4xl">
+            <div className="relative z-10 mt-18 max-w-4xl">
                 <h1
                     ref={heroTextRef}
                     className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[0.98] text-white -ml-1"
