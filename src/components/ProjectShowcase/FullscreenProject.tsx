@@ -109,11 +109,16 @@ export const FullscreenProject = forwardRef<HTMLDivElement, FullscreenProjectPro
   ) => {
     const [mounted, setMounted] = useState(false);
     const [titleFade, setTitleFade] = useState(0);
+    const [controlsVisible, setControlsVisible] = useState(false);
     const current = activeProject >= 0 ? projects[activeProject] : null;
 
     useEffect(() => {
       setMounted(true);
     }, []);
+
+    useEffect(() => {
+      setControlsVisible(activeProject >= 0);
+    }, [activeProject]);
     const nextIdx =
       activeProject >= 0 ? (activeProject + 1) % projects.length : 0;
     const nextProject = projects[nextIdx];
@@ -299,8 +304,8 @@ export const FullscreenProject = forwardRef<HTMLDivElement, FullscreenProjectPro
         data-lenis-prevent-wheel="true"
         data-lenis-prevent-touch="true"
         onScroll={handleScroll}
-        style={{ display: "none" }}
-        className="fixed z-40 inset-0 overflow-y-auto overflow-x-hidden bg-[#080808] will-change-[left,top,width,height] text-white font-[family-name:var(--font-familjen)] selection:bg-white selection:text-black pointer-events-auto select-none"
+        style={{ display: activeProject >= 0 ? "block" : "none" }}
+        className="fixed z-40 inset-0 overflow-y-auto overflow-x-hidden no-scrollbar bg-[#080808] will-change-[left,top,width,height] text-white font-[family-name:var(--font-familjen)] selection:bg-white selection:text-black pointer-events-auto select-none"
       >
         {/* Hidden ref anchor so indexRef remains attached if referenced */}
         <div ref={indexRef} className="hidden" aria-hidden="true" />
@@ -355,7 +360,11 @@ export const FullscreenProject = forwardRef<HTMLDivElement, FullscreenProjectPro
         {mounted &&
           activeProject >= 0 &&
           createPortal(
-            <div className="fixed inset-0 pointer-events-none z-[58]">
+            <div
+              className={`fixed inset-0 pointer-events-none z-[90] transition-opacity duration-250 ease-out ${
+                controlsVisible ? "opacity-100" : "opacity-0"
+              }`}
+            >
               {/* Close Control (Positioned safely below the fixed navbar) */}
               <button
                 type="button"
@@ -393,7 +402,11 @@ export const FullscreenProject = forwardRef<HTMLDivElement, FullscreenProjectPro
         {/* WIDE-SPLIT EDGE CARDS: PUSHED TO LEFT AND RIGHT EDGES (OPEN CENTER)*/}
         <div className="relative z-20 w-full pointer-events-auto">
           {/* Initial full-screen view: full project shows cleanly with zero cards visible initially */}
-          <div className="h-screen w-full flex flex-col justify-end items-center pb-10 pointer-events-none">
+          <div
+            className={`h-screen w-full flex flex-col justify-end items-center pb-10 pointer-events-none transition-opacity duration-700 ease-out ${
+              controlsVisible ? "opacity-100" : "opacity-0"
+            }`}
+          >
             <div className="flex items-center gap-2 text-[11px] font-mono tracking-widest text-white/50 uppercase animate-bounce">
               <ArrowDown className="w-3.5 h-3.5" />
             </div>

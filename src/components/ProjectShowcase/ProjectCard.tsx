@@ -12,8 +12,9 @@ interface ProjectCardProps {
   onKeyDown: (e: React.KeyboardEvent<HTMLDivElement>, index: number) => void;
 }
 
-export const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(
-  ({ project, index, imageRef, onPointerDown, onKeyDown }, ref) => {
+export const ProjectCard = React.memo(
+  forwardRef<HTMLDivElement, ProjectCardProps>(
+    ({ project, index, imageRef, onPointerDown, onKeyDown }, ref) => {
     return (
       <div
         ref={ref}
@@ -52,6 +53,7 @@ export const ProjectCard = forwardRef<HTMLDivElement, ProjectCardProps>(
       </div>
     );
   }
+)
 );
 
 ProjectCard.displayName = "ProjectCard";

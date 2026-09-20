@@ -6,6 +6,7 @@ import React, {
   useState,
   useCallback,
 } from "react";
+import { createPortal, flushSync } from "react-dom";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { projects } from "./projects";
@@ -45,13 +46,66 @@ export default function ProjectShowcase() {
   const isSwitchingRef = useRef(false);
   const slideStepRef = useRef(0);
 
+  // Shared-element view transition expander refs
+  const expanderRef = useRef<HTMLDivElement>(null);
+  const expanderImgRef = useRef<HTMLImageElement>(null);
+  const expanderContentRef = useRef<HTMLDivElement>(null);
+  const expanderTitleRef = useRef<HTMLHeadingElement>(null);
+  const expanderSubtitleRef = useRef<HTMLParagraphElement>(null);
+
   // Project cards and images element refs
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
   const imageRefs = useRef<(HTMLImageElement | null)[]>([]);
 
   // State
+  const [mounted, setMounted] = useState(false);
   const [introFinished, setIntroFinished] = useState(false);
   const [activeProject, setActiveProject] = useState<number>(-1);
+  const openedIndexRef = useRef<number>(-1);
+  const lockedScrollYRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Lock window scroll position completely during fullscreen/transitions to eliminate any vertical jump
+  useEffect(() => {
+    const handleScrollLock = () => {
+      if (lockedScrollYRef.current !== null) {
+        if (window.scrollY !== lockedScrollYRef.current) {
+          window.scrollTo({
+            top: lockedScrollYRef.current,
+            behavior: "instant" as ScrollBehavior,
+          });
+        }
+      }
+    };
+
+    const handleWheelLock = (e: WheelEvent) => {
+      if (lockedScrollYRef.current !== null) {
+        if (!fullscreenRef.current?.contains(e.target as Node)) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    const handleTouchLock = (e: TouchEvent) => {
+      if (lockedScrollYRef.current !== null) {
+        if (!fullscreenRef.current?.contains(e.target as Node)) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScrollLock, { passive: false });
+    window.addEventListener("wheel", handleWheelLock, { passive: false });
+    window.addEventListener("touchmove", handleTouchLock, { passive: false });
+    return () => {
+      window.removeEventListener("scroll", handleScrollLock);
+      window.removeEventListener("wheel", handleWheelLock);
+      window.removeEventListener("touchmove", handleTouchLock);
+    };
+  }, []);
 
   // High-performance animation values in refs
   const currentXRef = useRef(0);
@@ -100,114 +154,260 @@ export default function ProjectShowcase() {
   );
 
   // --------------------------------------------------------------------------
-  // Fullscreen Shared-Element Open
+  // Ensure corresponding card is visible and centered in the horizontal gallery
+  // --------------------------------------------------------------------------
+  const ensureCardInView = useCallback(
+    (i: number) => {
+      if (typeof window === "undefined" || i < 0 || i >= projects.length) return;
+      const W = window.innerWidth;
+      const H = window.innerHeight;
+      const g = getGalleryGeom(i, W, H);
+      const idealCurrentX = W / 2 - (g.x + g.w / 2);
+      const b = getBounds(W, H);
+      const clampedX = gsap.utils.clamp(b.min, b.max, idealCurrentX);
+      targetXRef.current = clampedX;
+      currentXRef.current = clampedX;
+
+      // Update card positions immediately in the DOM
+      cardRefs.current.forEach((el, idx) => {
+        if (!el) return;
+        const geom = getGalleryGeom(idx, W, H);
+        const x = geom.x + clampedX;
+        el.style.left = `${x}px`;
+        el.style.top = `${geom.y}px`;
+        el.style.width = `${geom.w}px`;
+        el.style.height = `${geom.h}px`;
+      });
+    },
+    [getBounds, getGalleryGeom]
+  );
+
+  // --------------------------------------------------------------------------
+  // Fullscreen Shared-Element View Transition Open: Card -> Full Page
   // --------------------------------------------------------------------------
   const openProject = useCallback(
     (index: number) => {
       if (animatingFullscreenRef.current) return;
       const card = cardRefs.current[index];
+      const expander = expanderRef.current;
+      const expanderImg = expanderImgRef.current;
+      const expanderContent = expanderContentRef.current;
+      const expanderTitle = expanderTitleRef.current;
+      const expanderSubtitle = expanderSubtitleRef.current;
       const fs = fullscreenRef.current;
       const fsImg = fullscreenImageRef.current;
       const fsUi = fullscreenUiRef.current;
-      if (!card || !fs || !fsImg || !fsUi) return;
+      const proj = projects[index];
+
+      if (!card || !expander || !expanderImg || !proj || !fs) return;
 
       animatingFullscreenRef.current = true;
-      setActiveProject(index);
-      document.body.style.overflow = "hidden";
+      openedIndexRef.current = index;
+      lockedScrollYRef.current = window.scrollY;
       if (typeof window !== "undefined") {
         (window as any).__lenis?.stop();
       }
 
-      const r = card.getBoundingClientRect();
+      const rect = card.getBoundingClientRect();
       const W = window.innerWidth;
       const H = window.innerHeight;
 
-      // Position fullscreen overlay EXACTLY over the card rect (Zero visual jump!)
-      fs.scrollTop = 0;
-      fs.style.overflowY = "hidden";
-      gsap.set(fs, {
+      // Populate expander content
+      expanderImg.src = proj.image;
+      expanderImg.alt = proj.title;
+      if (expanderTitle) expanderTitle.textContent = proj.title;
+      if (expanderSubtitle) expanderSubtitle.textContent = proj.subtitle || "";
+
+      // Position expander EXACTLY over the card rect (zero visual jump)
+      gsap.killTweensOf([expander, expanderContent]);
+      gsap.set(expander, {
         display: "block",
-        left: r.left,
-        top: r.top,
-        width: r.width,
-        height: r.height,
-        borderRadius: "0px",
+        left: rect.left,
+        top: rect.top,
+        width: rect.width,
+        height: rect.height,
+        borderRadius: "8px",
+        opacity: 1,
       });
 
-      fsImg.src = projects[index].image;
-      fsImg.alt = projects[index].title;
+      // Hide card temporarily so it doesn't double-render
+      card.style.opacity = "0";
 
-      gsap.to(fs, {
-        left: 0,
-        top: 0,
-        width: W,
-        height: H,
-        duration: 0.75,
-        ease: "power3.inOut",
+      // Reset content opacity
+      gsap.set(expanderContent, { opacity: 0, y: 55, scale: 0.94 });
+
+      // Create cinematic timeline
+      const tl = gsap.timeline({
         onComplete: () => {
-          animatingFullscreenRef.current = false;
+          setActiveProject(index);
+          if (fsImg) {
+            fsImg.src = proj.image;
+            fsImg.alt = proj.title;
+          }
+          gsap.set(fs, {
+            display: "block",
+            left: "0px",
+            top: "0px",
+            width: "100%",
+            height: "100%",
+            borderRadius: "0px",
+          });
+          fs.scrollTop = 0;
           fs.style.overflowY = "auto";
+
+          if (fsUi) {
+            gsap.set(fsUi, { opacity: 1, y: 0, scale: 1 });
+          }
+
+          gsap.set(expander, { display: "none" });
+          if (card) card.style.opacity = "1";
+          animatingFullscreenRef.current = false;
         },
       });
 
-      gsap.to(fsUi, {
-        opacity: 1,
-        duration: 0.4,
-        delay: 0.35,
-        ease: "power2.out",
-      });
+      // Step 1: Smooth luxury expansion of the card to full page
+      tl.to(
+        expander,
+        {
+          left: 0,
+          top: 0,
+          width: W,
+          height: H,
+          borderRadius: "0px",
+          duration: 0.85,
+          ease: "power4.inOut",
+        },
+        0
+      );
+
+      // Step 2: Delayed choreographed reveal of the title and subtitle
+      tl.to(
+        expanderContent,
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.65,
+          ease: "power3.out",
+        },
+        0.32
+      );
     },
     []
   );
 
   // --------------------------------------------------------------------------
-  // Fullscreen Shared-Element Close -> Shrinks into Card in Horizontal Row
+  // Fullscreen Shared-Element View Transition Close: Full Page -> Card in Row
   // --------------------------------------------------------------------------
   const closeProject = useCallback(() => {
     if (animatingFullscreenRef.current || activeProjectRef.current < 0) return;
-    const card = cardRefs.current[activeProjectRef.current];
+    const curIndex = activeProjectRef.current;
+    const expander = expanderRef.current;
+    const expanderImg = expanderImgRef.current;
+    const expanderContent = expanderContentRef.current;
+    const expanderTitle = expanderTitleRef.current;
+    const expanderSubtitle = expanderSubtitleRef.current;
     const fs = fullscreenRef.current;
-    const fsUi = fullscreenUiRef.current;
-    if (!fs || !fsUi) return;
+    const proj = projects[curIndex];
+
+    if (!expander || !expanderImg || !proj || !fs) return;
 
     animatingFullscreenRef.current = true;
     fs.scrollTop = 0;
     fs.style.overflowY = "hidden";
 
-    gsap.to(fsUi, {
-      opacity: 0,
-      duration: 0.25,
-      ease: "power2.in",
-    });
-
     const W = window.innerWidth;
     const H = window.innerHeight;
+
+    // Only adjust gallery track position if the active project was changed inside fullscreen
+    // and the target card is currently outside the viewport
+    if (curIndex !== openedIndexRef.current) {
+      const targetCard = cardRefs.current[curIndex];
+      if (targetCard) {
+        const r = targetCard.getBoundingClientRect();
+        if (r.left < 0 || r.right > W) {
+          ensureCardInView(curIndex);
+        }
+      }
+    }
+
+    const card = cardRefs.current[curIndex];
     const targetRect = card
       ? card.getBoundingClientRect()
-      : { left: W / 4, top: H / 4, width: W / 2, height: H / 2 };
+      : { left: W * 0.2, top: H * 0.2, width: W * 0.6, height: H * 0.6 };
 
-    gsap.to(fs, {
-      left: targetRect.left,
-      top: targetRect.top,
-      width: targetRect.width,
-      height: targetRect.height,
-      duration: 0.65,
-      ease: "power3.inOut",
+    // Setup expander at full page
+    expanderImg.src = proj.image;
+    expanderImg.alt = proj.title;
+    if (expanderTitle) expanderTitle.textContent = proj.title;
+    if (expanderSubtitle) expanderSubtitle.textContent = proj.subtitle || "";
+
+    gsap.killTweensOf([expander, expanderContent]);
+    gsap.set(expander, {
+      display: "block",
+      left: 0,
+      top: 0,
+      width: W,
+      height: H,
+      borderRadius: "0px",
+      opacity: 1,
+    });
+    gsap.set(expanderContent, { opacity: 1, y: 0, scale: 1 });
+
+    // Hide real modal
+    gsap.set(fs, { display: "none" });
+    if (transitionSlideRef.current) {
+      gsap.set(transitionSlideRef.current, { display: "none" });
+    }
+    isSwitchingRef.current = false;
+
+    if (card) {
+      card.style.opacity = "0";
+    }
+
+    const tl = gsap.timeline({
       onComplete: () => {
-        gsap.set(fs, { display: "none" });
-        if (transitionSlideRef.current) {
-          gsap.set(transitionSlideRef.current, { display: "none" });
+        gsap.set(expander, { display: "none" });
+        if (card) {
+          card.style.opacity = "1";
         }
-        isSwitchingRef.current = false;
         setActiveProject(-1);
+        lockedScrollYRef.current = null;
+        openedIndexRef.current = -1;
         animatingFullscreenRef.current = false;
-        document.body.style.overflow = "";
         if (typeof window !== "undefined") {
           (window as any).__lenis?.start();
         }
       },
     });
-  }, []);
+
+    // Step 1: Rapid elegant fade-out of the title
+    tl.to(
+      expanderContent,
+      {
+        opacity: 0,
+        y: -30,
+        duration: 0.22,
+        ease: "power2.in",
+      },
+      0
+    );
+
+    // Step 2: Smooth shrink from full page back into the card in the horizontal row
+    tl.to(
+      expander,
+      {
+        left: targetRect.left,
+        top: targetRect.top,
+        width: targetRect.width,
+        height: targetRect.height,
+        borderRadius: "8px",
+        duration: 0.75,
+        ease: "power4.inOut",
+      },
+      0.08
+    );
+  }, [ensureCardInView]);
 
   const switchProject = useCallback(
     (nextIndex: number, moveDirection?: "next" | "prev") => {
@@ -566,7 +766,8 @@ export default function ProjectShowcase() {
           if (!fs || !fsImg || !fsUi) return;
 
           setActiveProject(0);
-          document.body.style.overflow = "hidden";
+          openedIndexRef.current = 0;
+          lockedScrollYRef.current = window.scrollY;
           if (typeof window !== "undefined") {
             (window as any).__lenis?.stop();
           }
@@ -863,6 +1064,41 @@ export default function ProjectShowcase() {
             />
           ))}
         </div>
+
+        {/* ================================================================= */}
+        {/* SHARED-ELEMENT VIEW TRANSITION EXPANDER OVERLAY (PORTALED TO BODY)*/}
+        {/* ================================================================= */}
+        {mounted &&
+          createPortal(
+            <div
+              ref={expanderRef}
+              style={{ display: "none", position: "fixed", zIndex: 50 }}
+              className="overflow-hidden bg-[#080808] pointer-events-none select-none will-change-[left,top,width,height,border-radius] border border-white/15"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                ref={expanderImgRef}
+                src=""
+                alt=""
+                className="w-full h-full object-cover block will-change-transform"
+              />
+              {/* Central Title and Subtitle with Choreographed Delay */}
+              <div
+                ref={expanderContentRef}
+                className="absolute inset-0 flex flex-col items-center justify-center text-center px-6 pointer-events-none opacity-0"
+              >
+                <h2
+                  ref={expanderTitleRef}
+                  className="text-white text-5xl sm:text-7xl md:text-8xl lg:text-9xl tracking-tight leading-none font-normal drop-shadow-[0_4px_30px_rgba(0,0,0,0.9)]"
+                />
+                <p
+                  ref={expanderSubtitleRef}
+                  className="mt-4 text-sm sm:text-base md:text-lg text-white/80 max-w-xl text-center tracking-wide font-light drop-shadow-md"
+                />
+              </div>
+            </div>,
+            document.body
+          )}
 
         {/* Fullscreen Expanded Project Viewer Overlay */}
         <FullscreenProject

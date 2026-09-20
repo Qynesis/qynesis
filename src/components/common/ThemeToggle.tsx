@@ -40,10 +40,14 @@ export const ThemeToggle = ({ className }: { className?: string }) => {
       return;
     }
 
-    document.startViewTransition(() => {
+    document.documentElement.classList.add("theme-transition");
+    const transition = (document as any).startViewTransition(() => {
       flushSync(() => {
         setTheme(next);
       });
+    });
+    transition.finished.finally(() => {
+      document.documentElement.classList.remove("theme-transition");
     });
   };
 
