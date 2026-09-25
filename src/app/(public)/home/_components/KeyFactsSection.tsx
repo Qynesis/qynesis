@@ -119,10 +119,10 @@ export default function KeyFactsSection() {
         {/* SECTION HEADER */}
         <div className="text-center mb-16 md:mb-20">
           <h2 className="text-5xl sm:text-6xl md:text-7xl font-normal tracking-tight leading-none text-[#111] mb-4">
-            Key facts
+            Team of Visionaries
           </h2>
           <p className="text-base sm:text-lg text-neutral-600 font-normal">
-            A snapshot of our experience and impact.
+            Different skills. One standard.
           </p>
         </div>
 

@@ -3,6 +3,7 @@ import Banner from "./home/_components/banner";
 import AboutSection from "./home/_components/about";
 import InfiniteMarqueeBlinds from "@/components/reuseable/InfiniteMarqueeBlinds";
 import GallerySection from "./home/_components/GallerySection";
+import ServicesSection from "./home/_components/ServicesSection";
 
 export default function HomePage() {
   return (
@@ -11,6 +12,7 @@ export default function HomePage() {
       <AboutSection />
       <InfiniteMarqueeBlinds />
       <GallerySection />
+      <ServicesSection />
     </div>
   );
 }

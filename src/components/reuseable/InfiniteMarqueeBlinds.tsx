@@ -218,10 +218,10 @@ export default function InfiniteMarqueeBlinds() {
           {/* SECTION HEADER */}
           <div className="text-center mb-10 md:mb-12">
             <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight leading-none text-[#111] mb-3">
-              Key facts
+              Team of Visionaries
             </h2>
-            <p className="text-sm sm:text-base text-neutral-600 font-normal">
-              A snapshot of our experience and impact.
+            <p className="text-base sm:text-xl text-neutral-600 font-normal">
+              Different skills. One standard.
             </p>
           </div>
 

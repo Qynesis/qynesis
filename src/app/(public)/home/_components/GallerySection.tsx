@@ -4,8 +4,8 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import ServicesSection from "./ServicesSection";
 import { TransitionLink } from "@/components/transitions/PageTransitionContext";
+import MouseImageTrail from "@/components/reuseable/MouseImageTrail";
 
 import { PROJECTS, ProjectData } from "@/data/projects";
 export { PROJECTS, type ProjectData };
@@ -24,6 +24,13 @@ export default function GallerySection() {
   const overviewLine4Ref = useRef<HTMLSpanElement>(null);
   const overviewCtaRef = useRef<HTMLAnchorElement>(null);
 
+  // A.I. Design typography line refs for scroll entrance animation
+  const aiPanelRef = useRef<HTMLDivElement>(null);
+  const aiLine1Ref = useRef<HTMLHeadingElement>(null);
+  const aiLine2Ref = useRef<HTMLHeadingElement>(null);
+  const aiLine3Ref = useRef<HTMLHeadingElement>(null);
+  const aiLine4Ref = useRef<HTMLHeadingElement>(null);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
 
@@ -38,9 +45,9 @@ export default function GallerySection() {
   const projectsScrollDistance = 7200; // 8 project transitions * 900px = 7200px (~3 scrolls per project)
   const overviewSlideDistance = 1600;  // Slide gallery right-to-left onto overview
   const overviewHoldDistance = 2400;   // 6 scrolls delay (4 scrolls animated text entrance + 2 scrolls resting hold)
-  const servicesRevealDistance = 900;  // Slide overview away to unveil Services underneath
-  const servicesHoldDistance = 1200;   // Hold Services on screen before unsticking to footer
-  const totalExtraScroll = projectsScrollDistance + overviewSlideDistance + overviewHoldDistance + servicesRevealDistance + servicesHoldDistance;
+  const aiSlideDistance = 1600;        // Slide overview right-to-left to unveil A.I. DESIGN section
+  const aiHoldDistance = 1800;         // Hold A.I. DESIGN section before unsticking to Services from bottom
+  const totalExtraScroll = projectsScrollDistance + overviewSlideDistance + overviewHoldDistance + aiSlideDistance + aiHoldDistance;
 
   // Smooth scroll to target slide index
   const scrollToSlide = useCallback((index: number) => {
@@ -77,8 +84,6 @@ export default function GallerySection() {
       const projectsDuration = 10;
       const overviewSlideDuration = (overviewSlideDistance / projectsScrollDistance) * projectsDuration;
       const overviewHoldDuration = (overviewHoldDistance / projectsScrollDistance) * projectsDuration;
-      const servicesRevealDuration = (servicesRevealDistance / projectsScrollDistance) * projectsDuration;
-      const servicesHoldDuration = (servicesHoldDistance / projectsScrollDistance) * projectsDuration;
 
       // Master scroll timeline scrubbed across the outer wrapper's physical scroll length
       const tl = gsap.timeline({
@@ -132,7 +137,7 @@ export default function GallerySection() {
       tl.to(
         foregroundTrack,
         {
-          xPercent: -50,
+          xPercent: -33.3333,
           ease: "power1.inOut",
           duration: overviewSlideDuration,
         },
@@ -141,8 +146,10 @@ export default function GallerySection() {
 
       // -------------------------------------------------------------
       // PHASE 2b: OVERVIEW 6-SCROLL HOLD DELAY & 4-SCROLL TEXT ENTRANCE
+      // Starts when the horizontal project panel is 50% across the viewport
       // -------------------------------------------------------------
       const overviewStartTime = projectsDuration + overviewSlideDuration;
+      const overviewEntranceStartTime = projectsDuration + overviewSlideDuration * 0.5;
       const entranceDuration = (4 / 6) * overviewHoldDuration;
       const lineDuration = entranceDuration * 0.5;
 
@@ -158,7 +165,7 @@ export default function GallerySection() {
           line1,
           { x: -450, skewX: -18, rotateY: 16, opacity: 0, transformOrigin: "left center" },
           { x: 0, skewX: 0, rotateY: 0, opacity: 1, ease: "power2.out", duration: lineDuration },
-          overviewStartTime
+          overviewEntranceStartTime
         );
 
         // Line 2: Enters from right with extended travel and 3D skew
@@ -166,7 +173,7 @@ export default function GallerySection() {
           line2,
           { x: 450, skewX: 18, rotateY: -16, opacity: 0, transformOrigin: "right center" },
           { x: 0, skewX: 0, rotateY: 0, opacity: 1, ease: "power2.out", duration: lineDuration },
-          overviewStartTime + entranceDuration * 0.15
+          overviewEntranceStartTime + entranceDuration * 0.15
         );
 
         // Line 3: Enters from left with extended travel and 3D skew
@@ -174,7 +181,7 @@ export default function GallerySection() {
           line3,
           { x: -450, skewX: -18, rotateY: 16, opacity: 0, transformOrigin: "left center" },
           { x: 0, skewX: 0, rotateY: 0, opacity: 1, ease: "power2.out", duration: lineDuration },
-          overviewStartTime + entranceDuration * 0.30
+          overviewEntranceStartTime + entranceDuration * 0.30
         );
 
         // Line 4: Enters from right with extended travel and 3D skew
@@ -182,7 +189,7 @@ export default function GallerySection() {
           line4,
           { x: 450, skewX: 18, rotateY: -16, opacity: 0, transformOrigin: "right center" },
           { x: 0, skewX: 0, rotateY: 0, opacity: 1, ease: "power2.out", duration: lineDuration },
-          overviewStartTime + entranceDuration * 0.45
+          overviewEntranceStartTime + entranceDuration * 0.45
         );
 
         // CTA button: Soft fade and rise from below
@@ -190,7 +197,7 @@ export default function GallerySection() {
           cta,
           { y: 45, opacity: 0, scale: 0.94 },
           { y: 0, opacity: 1, scale: 1, ease: "power2.out", duration: lineDuration * 0.75 },
-          overviewStartTime + entranceDuration * 0.58
+          overviewEntranceStartTime + entranceDuration * 0.58
         );
       }
 
@@ -204,27 +211,66 @@ export default function GallerySection() {
       );
 
       // -------------------------------------------------------------
-      // PHASE 3: SLIDE OVERVIEW AWAY TO REVEAL SERVICES UNDERNEATH
+      // PHASE 3: SLIDE OVERVIEW TO THE LEFT TO REVEAL A.I. DESIGN PANEL
       // -------------------------------------------------------------
+      const aiStartTime = overviewStartTime + overviewHoldDuration;
+      const aiSlideDuration = (aiSlideDistance / projectsScrollDistance) * projectsDuration;
+      const aiHoldDuration = (aiHoldDistance / projectsScrollDistance) * projectsDuration;
+      const aiEntranceStartTime = aiStartTime + aiSlideDuration * 0.5;
+
       tl.to(
         foregroundTrack,
         {
-          xPercent: -100,
+          xPercent: -66.6666,
           ease: "power1.inOut",
-          duration: servicesRevealDuration,
+          duration: aiSlideDuration,
         },
-        projectsDuration + overviewSlideDuration + overviewHoldDuration
+        aiStartTime
       );
 
+      // A.I. Design typography lines entrance animation (starts when slide crosses 50%)
+      const a1 = aiLine1Ref.current;
+      const a2 = aiLine2Ref.current;
+      const a3 = aiLine3Ref.current;
+      const a4 = aiLine4Ref.current;
+      const aiLines = [a1, a2, a3, a4].filter(Boolean);
+
+      if (aiLines.length > 0) {
+        const aiAnimDuration = aiSlideDuration * 0.6;
+        aiLines.forEach((line, idx) => {
+          const isOdd = idx % 2 !== 0;
+          tl.fromTo(
+            line,
+            {
+              y: 80,
+              x: isOdd ? 45 : -45,
+              opacity: 0,
+              scale: 0.92,
+              skewX: isOdd ? 7 : -7,
+            },
+            {
+              y: 0,
+              x: 0,
+              opacity: 1,
+              scale: 1,
+              skewX: 0,
+              ease: "power2.out",
+              duration: aiAnimDuration,
+            },
+            aiEntranceStartTime + idx * (aiAnimDuration * 0.22)
+          );
+        });
+      }
+
       // -------------------------------------------------------------
-      // PHASE 4: SERVICES HOLD BUFFER BEFORE NATURAL SCROLL TO FOOTER
+      // PHASE 4: HOLD A.I. DESIGN PANEL BEFORE NATURAL BOTTOM SCROLL TO SERVICES
       // -------------------------------------------------------------
       tl.to(
         {},
         {
-          duration: servicesHoldDuration,
+          duration: aiHoldDuration,
         },
-        projectsDuration + overviewSlideDuration + overviewHoldDuration + servicesRevealDuration
+        aiStartTime + aiSlideDuration
       );
 
       ScrollTrigger.refresh();
@@ -239,7 +285,7 @@ export default function GallerySection() {
       ctx.revert();
       window.removeEventListener("resize", handleResize);
     };
-  }, [projectsScrollDistance, overviewSlideDistance, overviewHoldDistance, servicesRevealDistance, servicesHoldDistance]);
+  }, [projectsScrollDistance, overviewSlideDistance, overviewHoldDistance, aiSlideDistance, aiHoldDistance]);
 
   const activeProject = PROJECTS[activeIndex];
 
@@ -263,16 +309,11 @@ export default function GallerySection() {
         className="sticky top-0 w-full h-screen overflow-hidden bg-[#070707] text-white select-none font-[family-name:var(--font-familjen)]"
       >
         {/* ------------------------------------------------------------- */}
-        {/* LAYER 0: UNDERLYING SERVICES SECTION (Revealed in Phase 3)    */}
-        {/* ------------------------------------------------------------- */}
-        <ServicesSection />
-
-        {/* ------------------------------------------------------------- */}
-        {/* LAYER 20: FOREGROUND SLIDING TRACK (200vw: Gallery + Overview) */}
+        {/* FOREGROUND SLIDING TRACK (300vw: Gallery + Overview + A.I.)   */}
         {/* ------------------------------------------------------------- */}
         <div
           ref={foregroundTrackRef}
-          className="absolute inset-0 z-20 w-[200vw] h-full flex will-change-transform"
+          className="absolute inset-0 z-20 w-[300vw] h-full flex will-change-transform"
         >
           {/* ============================================================= */}
           {/* PANEL 1 (100vw): THE GALLERY SHOWCASE                         */}
@@ -412,6 +453,53 @@ export default function GallerySection() {
                 VIEW ALL PROJECTS
                 <span className="group-hover:translate-x-1 transition-transform">&rarr;</span>
               </TransitionLink>
+            </div>
+          </div>
+
+          {/* ============================================================= */}
+          {/* PANEL 3 (100vw): THE A.I. DESIGN DEVELOPMENT BRANDING PANEL     */}
+          {/* ============================================================= */}
+          <div
+            ref={aiPanelRef}
+            className="relative w-[100vw] h-full shrink-0 flex flex-col justify-center items-center p-8 md:p-16 bg-[#FFFFFF] text-[#111] overflow-hidden"
+          >
+            {/* Interactive Mouse Image Trail behind text */}
+            <MouseImageTrail
+              images={PROJECTS.map((p) => p.image)}
+              containerRef={aiPanelRef}
+              distanceThreshold={65}
+              maxImages={6}
+              imageWidth={190}
+              imageHeight={250}
+            />
+
+            <div className="relative z-20 w-full max-w-6xl mx-auto flex flex-col items-center justify-center text-center py-10 pointer-events-none">
+              <div className="flex flex-col items-center space-y-1 md:space-y-0 leading-[0.88] tracking-tighter font-normal select-none">
+                <h2
+                  ref={aiLine1Ref}
+                  className="text-6xl sm:text-8xl md:text-9xl lg:text-[7rem] uppercase text-[#111111] transition-transform duration-300 hover:scale-[1.02] cursor-default will-change-transform"
+                >
+                  A.I.
+                </h2>
+                <h2
+                  ref={aiLine2Ref}
+                  className="text-6xl sm:text-8xl md:text-9xl lg:text-[7rem] uppercase text-[#111111] transition-transform duration-300 hover:scale-[1.02] cursor-default will-change-transform"
+                >
+                  DESIGN
+                </h2>
+                <h2
+                  ref={aiLine3Ref}
+                  className="text-6xl sm:text-8xl md:text-9xl lg:text-[7rem] uppercase text-[#111111] transition-transform duration-300 hover:scale-[1.02] cursor-default will-change-transform"
+                >
+                  DEVELOPMENT
+                </h2>
+                <h2
+                  ref={aiLine4Ref}
+                  className="text-6xl sm:text-8xl md:text-9xl lg:text-[7rem] uppercase text-[#111111] transition-transform duration-300 hover:scale-[1.02] cursor-default will-change-transform"
+                >
+                  BRANDING
+                </h2>
+              </div>
             </div>
           </div>
         </div>
