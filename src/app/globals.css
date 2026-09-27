@@ -420,18 +420,18 @@
    📝 Dynamic Form Inputs & Selects & Calendar Backgrounds
    ======================================================== */
 /* Change background of all text inputs, textareas, selects, and pickers inside forms to layout-bg */
-form input:not([type="checkbox"]):not([type="radio"]),
-form textarea,
-form select,
-form button.bg-light-background,
-form .bg-light-background {
+form:not(.contact-form) input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent),
+form:not(.contact-form) textarea:not(.bg-transparent),
+form:not(.contact-form) select:not(.bg-transparent),
+form:not(.contact-form) button.bg-light-background,
+form:not(.contact-form) .bg-light-background {
   background-color: var(--layout-bg) !important;
 }
 
 /* Ensure focus states are clean and don't revert to white bg */
-form input:not([type="checkbox"]):not([type="radio"]):focus,
-form textarea:focus,
-form select:focus {
+form:not(.contact-form) input:not([type="checkbox"]):not([type="radio"]):not(.bg-transparent):focus,
+form:not(.contact-form) textarea:not(.bg-transparent):focus,
+form:not(.contact-form) select:not(.bg-transparent):focus {
   background-color: var(--primary-background) !important; /* matches focus:bg-primary-background */
 }
 

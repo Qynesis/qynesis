@@ -73,7 +73,7 @@ export default function Banner() {
     return (
         <div
             ref={containerRef}
-            className="relative w-full h-screen h-[100dvh] min-h-screen flex flex-col justify-between px-6 md:px-12 pt-28 md:pt-32 pb-8 bg-[#070707] text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none"
+            className="relative w-full h-screen h-[100dvh] min-h-screen flex flex-col justify-between px-6 md:px-12 pt-24 pb-8 bg-[#070707] text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none"
         >
             {/* CINEMATIC BACKGROUND VIDEO - HARDWARE ACCELERATED & ISOLATED */}
             <div

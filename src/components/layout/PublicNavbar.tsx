@@ -14,7 +14,7 @@ export default function PublicNavbar() {
   return (
     <>
       {/* ALWAYS-ON FIXED MIX-BLEND-DIFFERENCE LOGO (UNIVERSALLY ADAPTS OVER ANY LIGHT/DARK SECTION) */}
-      <div className="fixed top-0 left-0 w-auto z-[100] px-6 py-5 md:px-12 md:py-6 pointer-events-auto mix-blend-difference">
+      <div className="fixed top-0 left-0 w-auto z-[130] px-6 py-5 md:px-12 md:py-6 pointer-events-auto mix-blend-difference">
         <TransitionLink href="/" className="flex items-center gap-2 group no-underline">
           <Logo3DText
             text="QYNESIS"
@@ -27,10 +27,10 @@ export default function PublicNavbar() {
 
       {/* MAIN TOP NAVBAR - RIGHT CONTROLS */}
       <nav
-        className="fixed top-0 left-0 right-0 z-[100] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none"
+        className="fixed top-0 left-0 right-0 z-[130] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none"
       >
         {/* Right Action Controls */}
-        <div className="flex items-center gap-3 md:gap-4 relative z-[100] pointer-events-auto">
+        <div className="flex items-center gap-3 md:gap-4 relative z-[130] pointer-events-auto">
           {/* Let's Talk CTA */}
           <TransitionLink
             href="/contact"

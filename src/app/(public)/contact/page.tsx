@@ -1,10 +1,11 @@
-import WorkInProgress from "@/components/common/WorkInProgress";
-import CommonWrapper from "@/components/common/CommonWrapper";
+import ContactFormSection from "./_components/ContactFormSection";
+import QuestionsSection from "./_components/QuestionsSection";
 
 export default function ContactPage() {
   return (
-    <CommonWrapper className="px-4 xl:px-0">
-      <WorkInProgress title="Contact Page" />
-    </CommonWrapper>
+    <div className="w-full min-h-screen bg-[#070707] flex flex-col">
+      <ContactFormSection />
+      <QuestionsSection />
+    </div>
   );
 }

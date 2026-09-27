@@ -61,7 +61,7 @@ export default function ServicesSection() {
                 {!isExpanded && (
                   <>
                     {/* Animated vertical scale-up background sweep */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-white/[0.045] via-white/[0.025] to-transparent origin-bottom scale-y-0 group-hover:scale-y-100 transition-transform duration-750 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/[0.045] via-white/[0.025] to-transparent origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-750 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none" />
 
                     {/* Animated horizontal light sheen that sweeps across */}
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.035] to-transparent opacity-0 -translate-x-full group-hover:translate-x-full group-hover:opacity-100 transition-all duration-750 ease-out pointer-events-none" />

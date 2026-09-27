@@ -1,73 +1,234 @@
-import React from "react";
-import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import { SERVICES } from "@/data/services";
+"use client";
+
+import React, { useState } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowDownRight, ArrowUpRight } from "lucide-react";
 import { TransitionLink } from "@/components/transitions/PageTransitionContext";
+import FocusInContractText from "@/components/reuseable/FocusInContractText";
+import { SERVICES, ServiceItem } from "@/data/services";
+
+function ServiceDetailsButton({ slug }: { slug: string; title: string }) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <TransitionLink
+      href={`/services/${slug}`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group inline-flex items-center gap-2 transition-all duration-300 no-underline text-white text-base sm:text-lg uppercase tracking-widest font-normal"
+    >
+      <FocusInContractText isHovered={isHovered} as="span" duration={0.4}>
+        VIEW SERVICE DETAILS
+      </FocusInContractText>
+      <ArrowUpRight className="size-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white" />
+    </TransitionLink>
+  );
+}
 
 export default function ServicesPage() {
-  return (
-    <div className="w-full min-h-screen bg-[#070707] text-white font-[family-name:var(--font-familjen)] pt-28 md:pt-36 pb-24 px-6 md:px-12 select-none">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="pb-16 border-b border-white/10">
-          <span className="font-mono text-xs uppercase tracking-widest text-neutral-400 block mb-3">
-            WHAT WE DO
-          </span>
-          <h1 className="text-5xl sm:text-7xl md:text-8xl font-light uppercase tracking-tight text-white mb-6">
-            SERVICES
-          </h1>
-          <p className="text-base sm:text-lg text-neutral-400 font-light max-w-2xl leading-relaxed">
-            We partner with visionary enterprises to architect forward-thinking digital platforms, brands, and systems built to endure.
-          </p>
-        </div>
+  const [expandedId, setExpandedId] = useState<string>("");
 
-        {/* Services List */}
-        <div className="divide-y divide-white/10">
-          {SERVICES.map((service) => (
+  const toggleService = (id: string) => {
+    setExpandedId((prev) => (prev === id ? "" : id));
+  };
+
+  return (
+    <div className="w-full bg-[#070707] text-white font-[family-name:var(--font-familjen)] pt-24 pb-24 select-none">
+      {/* Header - Left Aligned with side padding */}
+      <div className="px-6 md:px-12 w-full pb-16">
+        <span className="font-mono text-xs uppercase tracking-widest text-neutral-400 block mb-3">
+          WHAT WE DO
+        </span>
+        <h1 className="text-5xl sm:text-7xl md:text-8xl font-light uppercase tracking-tight text-white mb-6">
+          SERVICES
+        </h1>
+        <p className="text-base sm:text-lg text-neutral-400 font-light max-w-2xl leading-relaxed">
+          We partner with visionary enterprises to architect forward-thinking digital platforms, brands, and systems built to endure.
+        </p>
+      </div>
+
+      {/* FULL WIDTH ACCORDION LIST */}
+      <div className="w-full flex flex-col divide-y divide-white/10 border-y border-white/10">
+        {SERVICES.map((service: ServiceItem) => {
+          const isExpanded = expandedId === service.id;
+
+          return (
             <div
               key={service.id}
-              className="py-12 md:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start group"
+              className={`w-full group relative transition-colors duration-500 overflow-hidden ${
+                isExpanded ? "bg-[#0c0c0c]" : "bg-transparent cursor-pointer"
+              }`}
             >
-              <div className="lg:col-span-1 font-mono text-sm text-neutral-500">
-                {service.indexStr}
-              </div>
+              {/* ANIMATED HOVER BACKGROUND CURTAIN & GLOW (WHEN COLLAPSED) */}
+              {!isExpanded && (
+                <>
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/[0.045] via-white/[0.025] to-transparent origin-top scale-y-0 group-hover:scale-y-100 transition-transform duration-750 ease-[cubic-bezier(0.16,1,0.3,1)] pointer-events-none" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/[0.035] to-transparent opacity-0 -translate-x-full group-hover:translate-x-full group-hover:opacity-100 transition-all duration-750 ease-out pointer-events-none" />
+                  <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-white/80 to-transparent scale-y-0 group-hover:scale-y-100 transition-transform duration-500 ease-out pointer-events-none" />
+                </>
+              )}
+              {/* ACCORDION HEADER ROW */}
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={() => toggleService(service.id)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    toggleService(service.id);
+                  }
+                }}
+                aria-expanded={isExpanded}
+                className="w-full !bg-transparent py-8 md:py-10 px-6 md:px-12 flex items-center justify-between text-left cursor-pointer transition-all duration-300 select-none outline-none"
+              >
+                <div className="flex items-center gap-4 sm:gap-6 md:gap-8">
+                  <span
+                    className={`text-xl md:text-2xl transition-all duration-500 ${
+                      isExpanded
+                        ? "rotate-45 text-white"
+                        : "text-neutral-400 group-hover:text-white group-hover:translate-x-1 group-hover:translate-y-1"
+                    }`}
+                  >
+                    <ArrowDownRight className="w-6 h-6 md:w-8 md:h-8" />
+                  </span>
+                  <span
+                    className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight leading-none transition-all duration-300 ${
+                      isExpanded
+                        ? "text-white"
+                        : "text-neutral-300 group-hover:text-white group-hover:translate-x-2"
+                    }`}
+                  >
+                    {service.title}
+                  </span>
+                </div>
 
-              <div className="lg:col-span-5">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-light text-white tracking-tight mb-4 group-hover:text-neutral-200 transition-colors">
-                  {service.title}
-                </h2>
-                <p className="text-sm md:text-base text-neutral-400 font-light leading-relaxed">
-                  {service.tagline}
-                </p>
-              </div>
-
-              <div className="lg:col-span-4 space-y-2">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-neutral-500 block mb-2">
-                  Key Capabilities
-                </span>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs md:text-sm text-neutral-300">
-                  {[...service.offeringsCol1, ...service.offeringsCol2].slice(0, 4).map((offering, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-white/50" />
-                      <span>{offering}</span>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-6 md:gap-10">
+                  <span
+                    className={`font-mono text-xs md:text-sm tracking-wider transition-colors duration-300 ${
+                      isExpanded ? "text-white" : "text-neutral-400 group-hover:text-white"
+                    }`}
+                  >
+                    {service.indexStr}
+                  </span>
+                  {/* Decorative ruler hash marks */}
+                  <div
+                    className={`hidden sm:flex items-center gap-1.5 transition-opacity duration-300 ${
+                      isExpanded ? "opacity-40" : "opacity-20 group-hover:opacity-60"
+                    }`}
+                  >
+                    {Array.from({ length: 14 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`w-[1px] ${
+                          i % 4 === 0 ? "h-4 bg-white" : "h-2 bg-white/60"
+                        }`}
+                      />
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="lg:col-span-2 lg:text-right pt-2">
-                <TransitionLink
-                  href={`/services/${service.slug}`}
-                  className="inline-flex items-center gap-2 text-xs font-mono uppercase tracking-widest text-white border-b border-white/40 pb-1 hover:border-white transition-colors group-hover:translate-x-1 duration-300"
-                >
-                  <span>Explore</span>
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </TransitionLink>
-              </div>
+              {/* ACCORDION EXPANDED CONTENT DRAWER WITH SPRING DAMPED SMOOTHNESS */}
+              <AnimatePresence initial={false}>
+                {isExpanded && (
+                  <motion.div
+                    key={`content-${service.id}`}
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{
+                      height: "auto",
+                      opacity: 1,
+                      transition: {
+                        height: {
+                          type: "spring",
+                          stiffness: 90,
+                          damping: 18,
+                          mass: 0.9,
+                        },
+                        opacity: {
+                          duration: 0.5,
+                          ease: "easeInOut",
+                        },
+                      },
+                    }}
+                    exit={{
+                      height: 0,
+                      opacity: 0,
+                      transition: {
+                        height: {
+                          type: "spring",
+                          stiffness: 110,
+                          damping: 20,
+                          mass: 0.8,
+                        },
+                        opacity: {
+                          duration: 0.3,
+                          ease: "easeOut",
+                        },
+                      },
+                    }}
+                    className="overflow-hidden"
+                  >
+                    <div className="px-6 md:px-12 pb-12 md:pb-16 pt-6">
+                      <div className="w-full grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-start">
+                        {/* LEFT COLUMN: TOP-ALIGNED OFFERINGS LIST & VIEW SERVICE DETAILS BUTTON */}
+                        <div className="lg:col-span-6 flex flex-col justify-start space-y-10 pt-1">
+                          {/* Two-column bullet items */}
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4">
+                            <ul className="space-y-3.5">
+                              {service.offeringsCol1.map((item, idx) => (
+                                <li
+                                  key={idx}
+                                  className="flex items-center gap-3 text-neutral-300 text-sm md:text-base font-normal tracking-wide"
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full border border-neutral-400 shrink-0" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                            <ul className="space-y-3.5">
+                              {service.offeringsCol2.map((item, idx) => (
+                                <li
+                                  key={idx}
+                                  className="flex items-center gap-3 text-neutral-300 text-sm md:text-base font-normal tracking-wide"
+                                >
+                                  <span className="w-1.5 h-1.5 rounded-full border border-neutral-400 shrink-0" />
+                                  <span>{item}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* ACTION BUTTON WITH INTERACTIVE HOVER ANIMATION */}
+                          <div className="pt-2 flex items-center gap-3">
+                            <ServiceDetailsButton slug={service.slug} title={service.title} />
+                          </div>
+                        </div>
+
+                        {/* RIGHT COLUMN: CLEAN VIDEO SHOWCASE */}
+                        <div className="lg:col-span-6">
+                          <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-white/10 bg-[#0d0d0d] shadow-2xl group/video">
+                            <video
+                              src={service.videoSrc}
+                              autoPlay
+                              loop
+                              muted
+                              playsInline
+                              preload="metadata"
+                              className="w-full h-full object-cover transition-transform duration-700 group-hover/video:scale-105"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
     </div>
   );
 }
+
