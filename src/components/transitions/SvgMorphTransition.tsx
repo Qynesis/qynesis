@@ -108,10 +108,6 @@ export default function SvgMorphTransition({
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
             className="relative z-10 flex flex-col items-center justify-center text-center font-[family-name:var(--font-familjen)] pointer-events-none"
           >
-            <div className="flex items-center gap-2 mb-2 font-mono text-[11px] uppercase tracking-[0.3em] text-amber-400/90">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-              <span>NAVIGATING</span>
-            </div>
             <div className="text-4xl sm:text-6xl md:text-7xl font-normal tracking-tight text-white uppercase">
               {pageLabel}
             </div>
