@@ -65,9 +65,8 @@ export default function SvgMorphTransition({
 
   return (
     <div
-      className={`fixed inset-0 z-[100] select-none flex items-center justify-center overflow-hidden ${
-        phase === "revealing" ? "pointer-events-none" : "pointer-events-auto"
-      }`}
+      className={`fixed inset-0 z-[100] select-none flex items-center justify-center overflow-hidden ${phase === "revealing" ? "pointer-events-none" : "pointer-events-auto"
+        }`}
       aria-hidden="true"
     >
       <svg

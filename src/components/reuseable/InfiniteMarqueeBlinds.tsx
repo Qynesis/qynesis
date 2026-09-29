@@ -1,25 +1,100 @@
 "use client";
 
-import React, { useEffect, useRef } from "react";
-import Image from "next/image";
+import React, { useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import UnderlineTextButton from "@/components/reuseable/UnderlineTextButton";
+
+export interface ProjectSlide {
+  id: string;
+  badgeIconText: string;
+  heroText: string;
+  title: string;
+  description: string;
+  gradientBg: string;
+  theme: "light" | "dark";
+  quote: string;
+  clientName: string;
+  role: string;
+  stats: string;
+}
+
+const SLIDES: ProjectSlide[] = [
+  {
+    id: "01",
+    badgeIconText: "BOOST YOUR WORKFORCE WITH AI DIGITAL WORKERS",
+    heroText: "Hi, I'm Alex.",
+    title: "MyWorker AI",
+    description: "AI platform simplifying hiring, management, and workforce scaling.",
+    gradientBg: "radial-gradient(ellipse at 80% 20%, #4a3b32 0%, #1e1713 50%, #0d0a08 100%)",
+    theme: "dark",
+    quote: "Qynesis completely redefined how our users interact with autonomous AI agents. Retention jumped 84%.",
+    clientName: "Alex Rivera",
+    role: "VP of Product · MyWorker AI",
+    stats: "+84% Retention",
+  },
+  {
+    id: "02",
+    badgeIconText: "(Enter the Sound)",
+    heroText: "An Independent Music ♬ Studio Shaped by Sound ©, Built to Move Culture.",
+    title: "Pulse Studio",
+    description: "A motion-led studio website showcasing artists, projects, and culture.",
+    gradientBg: "radial-gradient(ellipse at 50% 15%, #b91c1c 0%, #450a0a 45%, #050505 100%)",
+    theme: "dark",
+    quote: "They took our sonic identity and engineered a dark, atmospheric web ecosystem that feels alive.",
+    clientName: "Elena Rostova",
+    role: "Creative Director · Pulse Studio",
+    stats: "Site of the Day · Awwwards",
+  },
+  {
+    id: "03",
+    badgeIconText: "10K+ SATISFIED CUSTOMERS",
+    heroText: "LIVE LIFE IN LUXURY",
+    title: "Loftloom",
+    description: "Seamless real estate platform for effortless property discovery.",
+    gradientBg: "radial-gradient(ellipse at 60% 30%, #3f4740 0%, #1c221e 50%, #0a0d0b 100%)",
+    theme: "dark",
+    quote: "The cinematic elegance and precision Qynesis brought to Loftloom set an entirely new benchmark.",
+    clientName: "Marcus Vance",
+    role: "Managing Director · Loftloom Living",
+    stats: "10K+ Verified Clients",
+  },
+  {
+    id: "04",
+    badgeIconText: "NEXT-GEN COMPUTATIONAL INTELLIGENCE",
+    heroText: "Decoding cellular intelligence through generative computational biology.",
+    title: "Aether BioTech",
+    description: "Enterprise scientific discovery engine and spatial research platform.",
+    gradientBg: "radial-gradient(ellipse at 70% 30%, #1e3a5f 0%, #0d1b2a 50%, #030712 100%)",
+    theme: "dark",
+    quote: "The level of technical rigor and bespoke art direction that Qynesis provides is simply peerless.",
+    clientName: "Sophia Lin",
+    role: "Head of Design · Aether Systems",
+    stats: "3.2x Valuation Growth",
+  },
+];
 
 export default function InfiniteMarqueeBlinds() {
   const containerRef = useRef<HTMLDivElement>(null);
   const marqueeTrackRef = useRef<HTMLDivElement>(null);
+  const marqueeTrackReverseRef = useRef<HTMLDivElement>(null);
   const blindsContainerRef = useRef<HTMLDivElement>(null);
-  const keyFactsWrapperRef = useRef<HTMLDivElement>(null);
-  const card1Ref = useRef<HTMLDivElement>(null);
-  const card2Ref = useRef<HTMLDivElement>(null);
-  const card3Ref = useRef<HTMLDivElement>(null);
+  const overlayWrapperRef = useRef<HTMLDivElement>(null);
   const slatRefs = useRef<HTMLDivElement[]>([]);
+  const cardRefs = useRef<HTMLDivElement[]>([]);
 
   slatRefs.current = [];
+  cardRefs.current = [];
 
-  const addToRefs = (el: HTMLDivElement | null) => {
+  const addToSlatRefs = (el: HTMLDivElement | null) => {
     if (el && !slatRefs.current.includes(el)) {
       slatRefs.current.push(el);
+    }
+  };
+
+  const addToCardRefs = (el: HTMLDivElement | null) => {
+    if (el && !cardRefs.current.includes(el)) {
+      cardRefs.current.push(el);
     }
   };
 
@@ -28,131 +103,139 @@ export default function InfiniteMarqueeBlinds() {
     gsap.registerPlugin(ScrollTrigger);
 
     const ctx = gsap.context(() => {
-      // 1. Infinite Horizontal Marquee Loop Animation
+      // 1. Dual Infinite Horizontal Marquee Loops
       if (marqueeTrackRef.current) {
         gsap.to(marqueeTrackRef.current, {
           xPercent: -50,
           repeat: -1,
-          duration: 220,
+          duration: 140,
           ease: "none",
         });
       }
 
-      // 2. Master Venetian Blinds + KeyFacts Transition Timeline
-      if (containerRef.current && slatRefs.current.length > 0) {
-        const masterTl = gsap.timeline({
-          scrollTrigger: {
-            trigger: containerRef.current,
-            start: "top top",
-            end: "+=160%",
-            pin: true,
-            scrub: true,
-            anticipatePin: 1,
-          },
+      if (marqueeTrackReverseRef.current) {
+        gsap.set(marqueeTrackReverseRef.current, { xPercent: -50, force3D: true });
+        gsap.to(marqueeTrackReverseRef.current, {
+          xPercent: 0,
+          repeat: -1,
+          duration: 45,
+          ease: "none",
+          force3D: true,
         });
+      }
 
-        // Step 1: Blinds close from bottom to top (duration: 1.0)
-        masterTl.to(
-          slatRefs.current,
+      // 2. Master Pinned Timeline:
+      // - Phase A: Blinds close bottom-to-top wiping into the light section.
+      // - Phase B: Selected work layout locks on screen (Left side sticky).
+      // - Phase C: As user scrolls, Card 1 stays, then Card 2 rises from bottom, then Card 3 rises from bottom!
+      const cards = cardRefs.current;
+      if (!containerRef.current || slatRefs.current.length === 0) return;
+
+      const masterTl = gsap.timeline({
+        scrollTrigger: {
+          trigger: containerRef.current,
+          start: "top top",
+          end: "+=380%", // Extended scroll range so all cards can scroll up naturally
+          pin: true,
+          scrub: 1,
+          anticipatePin: 1,
+        },
+      });
+
+      // Step 1: Blinds close (duration: 1.0)
+      masterTl.to(
+        slatRefs.current,
+        {
+          scaleY: 1.05,
+          stagger: {
+            each: 0.08,
+            from: "end",
+          },
+          duration: 1.0,
+          ease: "power2.inOut",
+        },
+        0
+      );
+
+      // Step 2: Overlay emerges smoothly (starts at 0.70)
+      if (overlayWrapperRef.current) {
+        masterTl.fromTo(
+          overlayWrapperRef.current,
+          { yPercent: 100 },
           {
-            scaleY: 1.05,
-            stagger: {
-              each: 0.08,
-              from: "end",
-            },
-            duration: 1.0,
+            yPercent: 0,
+            duration: 0.8,
+            ease: "power2.out",
+          },
+          0.7
+        );
+      }
+
+      // Step 3: Card 0 starts visible; As user keeps scrolling, each next card comes up from bottom
+      // Card 0 -> dims as Card 1 arrives at timeline point 1.6
+      if (cards[0] && cards[1]) {
+        masterTl.to(
+          cards[0],
+          {
+            scale: 0.93,
+            opacity: 0.35,
+            y: -20,
+            duration: 0.8,
             ease: "power2.inOut",
           },
-          0
+          1.7
         );
 
-        // Step 2: DELAYED next section entry (starts at 0.70 of the timeline, once blinds are well up)
-        // NO opacity transitions — elements remain 100% solid opacity!
-        if (keyFactsWrapperRef.current) {
-          masterTl.fromTo(
-            keyFactsWrapperRef.current,
-            { yPercent: 100 },
-            {
-              yPercent: 0,
-              duration: 0.8,
-              ease: "power2.out",
-            },
-            0.7
-          );
-        }
+        masterTl.fromTo(
+          cards[1],
+          { yPercent: 130, scale: 0.94, opacity: 0 },
+          { yPercent: 0, scale: 1, opacity: 1, duration: 0.9, ease: "power2.out" },
+          1.6
+        );
+      }
 
-        // Step 3: 3D Z-axis emergence (cards start at y: 0 and rise up from deep in the Z-axis)
-        if (card1Ref.current) {
-          masterTl.fromTo(
-            card1Ref.current,
-            {
-              y: 0,
-              z: -350,
-              rotateX: 40,
-              rotateY: 28,
-              skewY: -16,
-              transformOrigin: "center bottom",
-            },
-            {
-              y: 0,
-              z: 0,
-              rotateX: 0,
-              rotateY: 0,
-              skewY: 0,
-              duration: 0.85,
-              ease: "power2.out",
-            },
-            0.74
-          );
-        }
+      // Card 1 -> dims as Card 2 arrives at timeline point 2.5
+      if (cards[1] && cards[2]) {
+        masterTl.to(
+          cards[1],
+          {
+            scale: 0.93,
+            opacity: 0.35,
+            y: -20,
+            duration: 0.8,
+            ease: "power2.inOut",
+          },
+          2.6
+        );
 
-        if (card2Ref.current) {
-          masterTl.fromTo(
-            card2Ref.current,
-            {
-              y: 0,
-              z: -420,
-              rotateX: 48,
-              skewY: -6,
-              scale: 0.82,
-              transformOrigin: "center bottom",
-            },
-            {
-              y: 0,
-              z: 0,
-              rotateX: 0,
-              skewY: 0,
-              scale: 1,
-              duration: 0.85,
-              ease: "power2.out",
-            },
-            0.78
-          );
-        }
+        masterTl.fromTo(
+          cards[2],
+          { yPercent: 130, scale: 0.94, opacity: 0 },
+          { yPercent: 0, scale: 1, opacity: 1, duration: 0.9, ease: "power2.out" },
+          2.5
+        );
+      }
 
-        if (card3Ref.current) {
-          masterTl.fromTo(
-            card3Ref.current,
-            {
-              y: 0,
-              z: -350,
-              rotateX: 42,
-              rotateY: -30,
-              skewY: 18,
-              transformOrigin: "center bottom",
-            },
-            {
-              y: 0,
-              z: 0,
-              rotateX: 0,
-              rotateY: 0,
-              skewY: 0,
-              duration: 0.85,
-              ease: "power2.out",
-            },
-            0.82
-          );
-        }
+      // Card 2 -> dims as Card 3 arrives at timeline point 3.4
+      if (cards[2] && cards[3]) {
+        masterTl.to(
+          cards[2],
+          {
+            scale: 0.93,
+            opacity: 0.35,
+            y: -20,
+            duration: 0.8,
+            ease: "power2.inOut",
+          },
+          3.5
+        );
+
+        masterTl.fromTo(
+          cards[3],
+          { yPercent: 130, scale: 0.94, opacity: 0 },
+          { yPercent: 0, scale: 1, opacity: 1, duration: 0.9, ease: "power2.out" },
+          3.4
+        );
       }
     }, containerRef);
 
@@ -162,157 +245,242 @@ export default function InfiniteMarqueeBlinds() {
   const marqueeText = "IMPACT + INSPIRE + INNOVATE + ";
   const repeatedText = Array(4).fill(marqueeText).join("");
 
+  const placeholderLogos = [
+    {
+      name: "NEXUS",
+      svg: (
+        <svg viewBox="0 0 130 36" fill="currentColor" className="h-7 sm:h-8 md:h-9 w-auto">
+          <path d="M12 4L4 18L12 32H20L12 18L20 4H12ZM22 4L14 18L22 32H30L38 18L30 4H22Z" fill="currentColor" opacity="0.95"/>
+          <text x="44" y="24" fontFamily="system-ui, -apple-system, sans-serif" fontSize="18" fontWeight="700" letterSpacing="3">NEXUS</text>
+        </svg>
+      ),
+    },
+    {
+      name: "VERTEX",
+      svg: (
+        <svg viewBox="0 0 140 36" fill="currentColor" className="h-7 sm:h-8 md:h-9 w-auto">
+          <polygon points="18,5 31,31 5,31" stroke="currentColor" strokeWidth="3" fill="none" />
+          <polygon points="18,14 26,30 10,30" fill="currentColor" />
+          <text x="42" y="24" fontFamily="system-ui, -apple-system, sans-serif" fontSize="18" fontWeight="700" letterSpacing="4">VERTEX</text>
+        </svg>
+      ),
+    },
+    {
+      name: "SYNAPSE",
+      svg: (
+        <svg viewBox="0 0 160 36" fill="currentColor" className="h-7 sm:h-8 md:h-9 w-auto">
+          <circle cx="18" cy="18" r="12" stroke="currentColor" strokeWidth="3" fill="none" />
+          <circle cx="18" cy="18" r="5" fill="currentColor" />
+          <line x1="18" y1="2" x2="18" y2="9" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <line x1="18" y1="27" x2="18" y2="34" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <line x1="2" y1="18" x2="9" y2="18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <line x1="27" y1="18" x2="34" y2="18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <text x="42" y="24" fontFamily="system-ui, -apple-system, sans-serif" fontSize="18" fontWeight="700" letterSpacing="3.5">SYNAPSE</text>
+        </svg>
+      ),
+    },
+    {
+      name: "AETHER",
+      svg: (
+        <svg viewBox="0 0 150 36" fill="currentColor" className="h-7 sm:h-8 md:h-9 w-auto">
+          <rect x="6" y="6" width="24" height="24" rx="4" stroke="currentColor" strokeWidth="3" fill="none" transform="rotate(45 18 18)" />
+          <circle cx="18" cy="18" r="4" fill="currentColor" />
+          <text x="42" y="24" fontFamily="system-ui, -apple-system, sans-serif" fontSize="18" fontWeight="700" letterSpacing="4">AETHER</text>
+        </svg>
+      ),
+    },
+    {
+      name: "STRATA",
+      svg: (
+        <svg viewBox="0 0 145 36" fill="currentColor" className="h-7 sm:h-8 md:h-9 w-auto">
+          <line x1="6" y1="10" x2="30" y2="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <line x1="10" y1="18" x2="34" y2="18" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <line x1="6" y1="26" x2="26" y2="26" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          <text x="44" y="24" fontFamily="system-ui, -apple-system, sans-serif" fontSize="18" fontWeight="700" letterSpacing="4">STRATA</text>
+        </svg>
+      ),
+    },
+    {
+      name: "KINETIC",
+      svg: (
+        <svg viewBox="0 0 155 36" fill="currentColor" className="h-7 sm:h-8 md:h-9 w-auto">
+          <path d="M7 6L20 18L7 30M16 6L29 18L16 30" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+          <text x="42" y="24" fontFamily="system-ui, -apple-system, sans-serif" fontSize="18" fontWeight="700" letterSpacing="3.5">KINETIC</text>
+        </svg>
+      ),
+    },
+  ];
+
   return (
     <div
       ref={containerRef}
       className="relative w-full h-screen bg-[#080808] text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none"
     >
-      {/* BACKGROUND CORNER DETAILS */}
-      <div className="absolute top-8 left-6 md:left-12 z-10 mt-15">
-        <span className="font-mono text-xs uppercase tracking-widest text-neutral-400 block max-w-[180px] leading-relaxed">
-          FOCUSED VISION.
-          <br />
-          MEASURED EXECUTION.
-        </span>
-      </div>
+      {/* ----------------- SECTION 1: DUAL MARQUEE BACKGROUND ----------------- */}
+      <div className="relative z-10 w-full h-full flex flex-col justify-center gap-6 md:gap-14 overflow-hidden">
+        {/* Background Corner Slogan */}
+        <div className="absolute top-8 left-6 md:left-12 z-10 mt-15">
+          <span className="font-mono text-xs uppercase tracking-widest text-neutral-400 block max-w-[180px] leading-relaxed">
+            FOCUSED VISION.
+            <br />
+            MEASURED EXECUTION.
+          </span>
+        </div>
 
-      {/* MAIN INFINITE MARQUEE TEXT TRACK */}
-      <div className="relative z-10 w-full h-full flex flex-col justify-center overflow-hidden">
+        {/* Row 1: Primary Slogan Marquee (Scrolls Left) */}
         <div className="w-full overflow-hidden flex items-center">
           <div
             ref={marqueeTrackRef}
             className="flex whitespace-nowrap will-change-transform py-4"
           >
-            <span className="text-6xl sm:text-8xl md:text-[9.5rem] lg:text-[12rem] font-medium tracking-tighter uppercase leading-none text-white px-4">
+            <span className="text-6xl sm:text-8xl md:text-[9.5rem] font-normal tracking-tighter uppercase leading-none text-white px-4">
               {repeatedText}
             </span>
-            <span className="text-6xl sm:text-8xl md:text-[9.5rem] lg:text-[12rem] font-medium tracking-tighter uppercase leading-none text-white px-4">
+            <span className="text-6xl sm:text-8xl md:text-[9.5rem] font-normal tracking-tighter uppercase leading-none text-white px-4">
               {repeatedText}
             </span>
           </div>
         </div>
+
+        {/* Row 2: Reverse Logos Marquee (Scrolls Right) */}
+        <div className="w-full overflow-hidden flex items-center py-4">
+          <div
+            ref={marqueeTrackReverseRef}
+            className="flex whitespace-nowrap will-change-transform items-center"
+          >
+            <div className="flex items-center gap-12 md:gap-20 px-6 shrink-0">
+              {placeholderLogos.map((brand, i) => (
+                <div
+                  key={`brand-1-${i}`}
+                  className="flex items-center text-neutral-400 hover:text-white transition-colors duration-200 opacity-70 hover:opacity-100 cursor-pointer"
+                >
+                  {brand.svg}
+                </div>
+              ))}
+            </div>
+            <div className="flex items-center gap-12 md:gap-20 px-6 shrink-0">
+              {placeholderLogos.map((brand, i) => (
+                <div
+                  key={`brand-2-${i}`}
+                  className="flex items-center text-neutral-400 hover:text-white transition-colors duration-200 opacity-70 hover:opacity-100 cursor-pointer"
+                >
+                  {brand.svg}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* VENETIAN BLINDS CURTAIN WIPING SLATS (TRANSITION TO LIGHT THEME) */}
+      {/* ----------------- SECTION 2: VENETIAN BLINDS WIPING SLATS ----------------- */}
       <div
         ref={blindsContainerRef}
         className="absolute inset-0 z-20 pointer-events-none flex flex-col justify-between h-[calc(100%+4px)]"
+        aria-hidden="true"
       >
         {[0, 1, 2, 3, 4].map((index) => (
           <div
             key={index}
-            ref={addToRefs}
+            ref={addToSlatRefs}
             data-theme="light"
             className="w-full h-[20.5%] bg-[#EAE9E5] origin-bottom scale-y-0 will-change-transform"
           />
         ))}
       </div>
 
-      {/* KEY FACTS SECTION OVERLAY (EMERGES SMOOTHLY AT 50% OF BLINDS TRANSITION) */}
+      {/* ----------------- SECTION 3: STICKY TRIONN SELECTED WORK & SCROLLING CARDS ----------------- */}
       <div
-        ref={keyFactsWrapperRef}
+        ref={overlayWrapperRef}
         data-theme="light"
-        className="absolute inset-0 z-30 w-full h-full flex flex-col justify-center px-6 md:px-12 pointer-events-auto [perspective:1400px] [transform-style:preserve-3d]"
+        className="absolute inset-0 z-30 w-full h-full bg-[#EAE9E5] text-[#141414] pointer-events-auto flex items-center justify-center px-6 sm:px-12 md:px-16 lg:px-24 will-change-transform"
       >
-        <div className="relative z-10 max-w-7xl mx-auto w-full [transform-style:preserve-3d]">
-          {/* SECTION HEADER */}
-          <div className="text-center mb-10 md:mb-12">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl font-normal tracking-tight leading-none text-[#111] mb-3">
-              Team of Visionaries
+        <div className="w-full max-w-[1760px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center h-full py-8 md:py-12">
+          {/* LEFT COLUMN: STICKY ON TOP EDITORIAL TITLE */}
+          <div className="lg:col-span-5 flex flex-col justify-center items-start z-20 pr-4">
+            <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-[6.5rem] font-normal tracking-tight text-[#141414] leading-[0.92] mb-12">
+              Client Stories <br />
+              <span className="text-[#141414]">&amp; explorations</span>
             </h2>
-            <p className="text-base sm:text-xl text-neutral-600 font-normal">
-              Different skills. One standard.
-            </p>
+
+            <UnderlineTextButton
+              text="A Few Words From Clients"
+              href="#testimonials"
+              className="border-black text-[#141414] hover:border-neutral-500"
+            />
           </div>
 
-          {/* 3-CARD KEY FACTS GRID WITH 3D PERSPECTIVE */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 items-stretch [perspective:1400px] [transform-style:preserve-3d]">
-            {/* CARD 1: FEATURED & AWARDS (FULL BACKGROUND IMAGE) */}
-            <div
-              ref={card1Ref}
-              className="rounded-2xl p-6 md:p-8 text-white flex flex-col justify-between min-h-[380px] md:min-h-[460px] relative overflow-hidden group border border-white/10 shadow-xl will-change-transform"
-            >
-              <div className="absolute inset-0 z-0">
-                <Image
-                  src="/images/key_facts_awards_lion.jpg"
-                  alt="Featured & Awards Lion Trophy"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 brightness-90"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/60" />
-              </div>
+          {/* RIGHT COLUMN: CARDS CONTAINER WHERE EACH TESTIMONIAL SCROLLS UP FROM BOTTOM */}
+          <div className="lg:col-span-7 relative w-full h-[540px] sm:h-[600px] md:h-[660px] flex items-center justify-center">
+            {SLIDES.map((slide, idx) => {
+              return (
+                <div
+                  key={slide.id}
+                  ref={addToCardRefs}
+                  style={{
+                    zIndex: 10 + idx,
+                  }}
+                  className="absolute inset-0 w-full max-w-[700px] mx-auto flex flex-col justify-between rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl bg-white p-2 md:p-3 will-change-transform border border-black/5"
+                >
+                  {/* Visual Card Artwork (16:10 aspect ratio matching TRIONN) */}
+                  <div
+                    style={{ background: slide.gradientBg }}
+                    className="relative w-full h-[360px] sm:h-[410px] md:h-[450px] rounded-xl md:rounded-2xl overflow-hidden p-6 md:p-8 flex flex-col justify-between text-white shadow-inner"
+                  >
+                    {/* Subtle Noise / Grid Accent */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10 pointer-events-none" />
 
-              <span className="relative z-10 font-mono text-xs uppercase tracking-widest text-neutral-200 font-medium block drop-shadow-md">
-                FEATURED & AWARDS
-              </span>
+                    {/* Card Top Header: Badge Text */}
+                    <div className="relative z-10 flex items-start justify-between">
+                      <div className="max-w-[320px]">
+                        <div className="w-6 h-6 mb-3 opacity-90 text-white">
+                          <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+                            <circle cx="6" cy="12" r="3" />
+                            <circle cx="12" cy="6" r="3" />
+                            <circle cx="18" cy="12" r="3" />
+                          </svg>
+                        </div>
+                        <span className="font-mono text-[10px] md:text-xs uppercase tracking-wider text-white/90 leading-tight block">
+                          {slide.badgeIconText}
+                        </span>
+                      </div>
+                    </div>
 
-              <div className="relative z-10 flex items-end justify-between pt-4 border-t border-white/20">
-                <div className="space-y-1 max-w-[200px]">
-                  <p className="text-xs sm:text-sm text-neutral-200 leading-relaxed font-normal drop-shadow-md">
-                    Featured on top design platforms worldwide.
-                  </p>
+                    {/* Card Big Headline */}
+                    <div className="relative z-10">
+                      <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.8rem] font-normal tracking-tight text-white leading-[1.05]">
+                        {slide.heroText}
+                      </h3>
+                    </div>
+                  </div>
+
+                  {/* Card Bottom Meta: Highlighted Client Quote & Attribution */}
+                  <div className="px-5 py-4 md:py-5 flex flex-col justify-between gap-3 ">
+                    <div className="flex flex-col gap-1.5">
+                      <span className="font-mono text-[10px] uppercase tracking-widest text-neutral-400 font-normal">
+                        Words From Clients
+                      </span>
+                      <blockquote className="text-sm sm:text-base md:text-[1.05rem] text-[#141414] font-medium italic leading-relaxed tracking-tight">
+                        &ldquo;{slide.quote}&rdquo;
+                      </blockquote>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2.5 border-t border-black/10">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold tracking-tight text-[#141414]">
+                          {slide.clientName}
+                        </span>
+                        <span className="font-mono text-[11px] uppercase tracking-wider text-neutral-500">
+                          {slide.role}
+                        </span>
+                      </div>
+                      <span className="font-mono text-xs font-medium uppercase tracking-wider text-neutral-400">
+                        {slide.title}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-4xl md:text-5xl font-medium tracking-tight text-white drop-shadow-lg">
-                  50+
-                </span>
-              </div>
-            </div>
-
-            {/* CARD 2: PROJECTS COMPLETED */}
-            <div
-              ref={card2Ref}
-              className="bg-[#DFDED9] rounded-2xl p-6 md:p-8 text-[#111] flex flex-col justify-between items-center text-center min-h-[380px] md:min-h-[460px] relative overflow-hidden group border border-black/5 shadow-xl will-change-transform"
-            >
-              <span className="font-mono text-xs uppercase tracking-widest text-neutral-600 font-medium block w-full text-center">
-                PROJECTS COMPLETED
-              </span>
-
-              <div className="my-auto py-4">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-white flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform duration-500 mx-auto">
-                  <span className="text-3xl md:text-5xl font-medium tracking-tight text-[#111]">
-                    1.5K+
-                  </span>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-black/10 w-full">
-                <p className="text-xs sm:text-sm text-neutral-700 leading-relaxed font-normal max-w-xs mx-auto">
-                  90% of our clients seek our services for a second project.
-                </p>
-              </div>
-            </div>
-
-            {/* CARD 3: OUR TEAM MEMBERS */}
-            <div
-              ref={card3Ref}
-              className="bg-[#24262B] rounded-2xl p-6 md:p-8 text-white flex flex-col justify-between min-h-[380px] md:min-h-[460px] relative overflow-hidden group border border-white/5 shadow-xl will-change-transform"
-            >
-              <span className="font-mono text-xs uppercase tracking-widest text-neutral-400 font-medium block">
-                OUR TEAM MEMBERS
-              </span>
-
-              <div className="my-4 relative w-full h-44 md:h-52 rounded-xl overflow-hidden">
-                <Image
-                  src="/images/key_facts_team_lion.jpg"
-                  alt="Our Team Members Lion Mask Portrait"
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-              </div>
-
-              <div className="flex items-end justify-between pt-4 border-t border-white/10">
-                <div className="space-y-1 max-w-[200px]">
-                  <p className="text-xs sm:text-sm text-neutral-400 leading-relaxed font-normal">
-                    Different skills. One standard.
-                  </p>
-                </div>
-                <span className="text-4xl md:text-5xl font-medium tracking-tight text-white">
-                  20+
-                </span>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
       </div>
