@@ -8,8 +8,9 @@ import { ArrowUpRight } from "lucide-react";
 import FocusInContractText from "@/components/reuseable/FocusInContractText";
 import curvedRibbonGallery, { CurvedRibbonController } from "@/components/reuseable/curvedRibbonGallery";
 import { PROJECTS, ProjectData } from "@/data/projects";
+import { TEAM_MEMBERS, TeamMember } from "@/data/team";
 
-export { PROJECTS, type ProjectData };
+export { PROJECTS, type ProjectData, TEAM_MEMBERS, type TeamMember };
 
 const GALLERY_PROJECTS = PROJECTS.slice(0, 3);
 const SIX_PROJECTS = PROJECTS.slice(0, 6);
@@ -470,31 +471,38 @@ export default function GallerySection() {
               className="absolute inset-0 z-30 w-full h-full flex flex-col items-center justify-center px-4 sm:px-6 md:px-8 pointer-events-auto opacity-0 will-change-transform"
             >
               <div className="w-full max-w-[1440px] mx-auto flex flex-col items-center">
-                {/* 3x2 Grid */}
+                {/* 3x2 Grid: Team Members */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 w-full">
-                  {SIX_PROJECTS.map((proj, idx) => (
+                  {TEAM_MEMBERS.map((member, idx) => (
                     <TransitionLink
-                      key={proj.id}
+                      key={member.id}
                       ref={(el) => {
                         if (el) gridCardRefs.current[idx] = el;
                       }}
-                      href="/work"
+                      href="/about"
                       className="group relative block w-full aspect-[16/10] rounded-md overflow-hidden shadow-lg bg-neutral-900 transition-shadow duration-500 hover:shadow-2xl hover:-translate-y-1 will-change-transform"
                     >
                       <img
-                        src={proj.image}
-                        alt={proj.title}
+                        src={member.image}
+                        alt={member.name}
                         className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                         loading="lazy"
                       />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-80 group-hover:opacity-90 transition-opacity" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
                       <div className="absolute bottom-3.5 left-4 right-4 text-white pointer-events-none">
                         <span className="font-mono text-[10px] uppercase tracking-wider text-white/70 block">
-                          {proj.category}
+                          {member.role}
                         </span>
-                        <h4 className="text-base sm:text-lg font-medium tracking-tight text-white leading-tight">
-                          {proj.title}
-                        </h4>
+                        <div className="flex items-center justify-between gap-2 mt-0.5">
+                          <h4 className="text-base sm:text-lg font-medium tracking-tight text-white leading-tight">
+                            {member.name}
+                          </h4>
+                          {member.location && (
+                            <span className="font-mono text-[10px] text-white/50 tracking-wider uppercase hidden sm:inline-block">
+                              {member.location}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </TransitionLink>
                   ))}
@@ -503,13 +511,13 @@ export default function GallerySection() {
                 {/* UNDERLINED ACTION BUTTON WITH ARROW & HOVER EFFECT */}
                 <div ref={gridButtonRef} className="mt-8 md:mt-10 will-change-transform">
                   <TransitionLink
-                    href="/work"
+                    href="/about"
                     onMouseEnter={() => setIsBtnHovered(true)}
                     onMouseLeave={() => setIsBtnHovered(false)}
                     className="group inline-flex items-center gap-2 border-b border-white/30 hover:border-white pb-1 transition-all duration-300 no-underline text-white text-sm sm:text-base uppercase tracking-widest font-normal cursor-pointer select-none"
                   >
                     <FocusInContractText isHovered={isBtnHovered} as="span" duration={0.4}>
-                      VIEW ALL PROJECTS
+                      MEET THE ENTIRE TEAM
                     </FocusInContractText>
                     <ArrowUpRight className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-white" />
                   </TransitionLink>
