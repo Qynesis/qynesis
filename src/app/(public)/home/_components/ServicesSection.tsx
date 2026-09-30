@@ -36,9 +36,9 @@ export default function ServicesSection() {
   return (
     <section
       data-theme="dark"
-      className="relative w-full bg-[#070707] text-white pt-20 pb-28 md:pt-28 md:pb-36 px-6 md:px-12 font-[family-name:var(--font-familjen)] select-none border-t border-white/10"
+      className="relative w-full bg-[#070707] text-white pt-20 pb-28 md:pt-28 md:pb-36 px-6 md:px-12 font-[family-name:var(--font-familjen)] select-none"
     >
-      <div className="w-full">
+      <div className="relative z-10 w-full">
         {/* SECTION HEADER: Small section label matching About/Footer */}
         <div className="w-full mb-12 md:mb-16">
           <span className="text-base uppercase tracking-wide text-neutral-400 font-medium block">
@@ -202,18 +202,33 @@ export default function ServicesSection() {
                             </div>
                           </div>
 
-                          {/* RIGHT COLUMN: CLEAN VIDEO SHOWCASE */}
+                          {/* RIGHT COLUMN: CLEAN MEDIA SHOWCASE */}
                           <div className="lg:col-span-6">
-                            <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-white/10 bg-[#0d0d0d] shadow-2xl group/video">
-                              <video
-                                src={service.videoSrc}
-                                autoPlay
-                                loop
-                                muted
-                                playsInline
-                                preload="metadata"
-                                className="w-full h-full object-cover transition-transform duration-700 group-hover/video:scale-105"
-                              />
+                            <div className="relative w-full aspect-[16/10] rounded-xl overflow-hidden border border-white/10 bg-[#0d0d0d] shadow-2xl group/media">
+                              {service.posterImage ? (
+                                <Image
+                                  src={service.posterImage}
+                                  alt={service.title}
+                                  fill
+                                  sizes="(max-width: 1024px) 100vw, 50vw"
+                                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover/media:scale-105"
+                                />
+                              ) : (
+                                <video
+                                  src={service.videoSrc}
+                                  autoPlay
+                                  loop
+                                  muted
+                                  playsInline
+                                  preload="metadata"
+                                  className="w-full h-full object-cover transition-transform duration-700 group-hover/media:scale-105"
+                                />
+                              )}
+                              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+                              <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs font-mono uppercase tracking-widest text-white/80 pointer-events-none">
+                                <span>{service.title}</span>
+                                <span className="text-neutral-400">QYNESIS // {service.indexStr}</span>
+                              </div>
                             </div>
                           </div>
                         </div>

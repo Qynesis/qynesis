@@ -73,10 +73,10 @@ export default function Banner() {
     return (
         <div
             ref={containerRef}
-            className="relative w-full h-screen h-[100dvh] min-h-screen flex flex-col justify-between px-6 md:px-12 pt-24 pb-8 bg-[#070707] text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none"
+            className="relative w-full h-screen h-[100dvh] min-h-screen flex flex-col justify-between px-6 md:px-12 pt-18 pb-8 bg-[#070707] text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none"
         >
             {/* CINEMATIC BACKGROUND VIDEO - HARDWARE ACCELERATED & ISOLATED */}
-            <div
+            {/* <div
                 className="absolute inset-0 z-0 pointer-events-none overflow-hidden"
                 style={{
                     transform: "translate3d(0, 0, 0)",
@@ -112,10 +112,9 @@ export default function Banner() {
                         type="video/mp4"
                     />
                 </video>
-                {/* Ambient gradient vignettes to guarantee text legibility & seamless section blending */}
                 <div className="absolute inset-0 bg-gradient-to-r from-[#070707] via-[#070707]/40 to-transparent z-1" />
                 <div className="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-[#070707] to-transparent z-1" />
-            </div>
+            </div> */}
 
             {/* TOP LEFT HERO HEADLINE */}
             <div className="relative z-10 mt-2 md:mt-4 max-w-4xl">

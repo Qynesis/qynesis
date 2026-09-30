@@ -96,4 +96,46 @@ export const SERVICES: ServiceItem[] = [
     videoSrc: "/Animate_reference_image_environment_1080p_20260921025358.mp4",
     posterImage: "https://images.unsplash.com/photo-1697292859784-c319e612ea15?w=1200&auto=format&fit=crop&q=85",
   },
+  {
+    id: "app-development",
+    indexStr: "05",
+    title: "App development",
+    slug: "app-development",
+    tagline: "Engineering native and cross-platform mobile ecosystems with seamless fluid performance.",
+    description:
+      "We engineer native iOS, Android, and cross-platform mobile applications defined by tactile responsiveness, offline-first reliability, and seamless cloud synchronization.",
+    offeringsCol1: [
+      "iOS & Android Native Apps",
+      "React Native & Flutter",
+      "Mobile UI/UX Architecture",
+    ],
+    offeringsCol2: [
+      "Real-Time Sync & Offline Engines",
+      "App Store Optimization (ASO)",
+      "Hardware & Sensor Integration",
+    ],
+    videoSrc: "/Animate_reference_image_environment_1080p_20260921025358.mp4",
+    posterImage: "https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=1200&auto=format&fit=crop&q=85",
+  },
+  {
+    id: "seo-digital-marketing",
+    indexStr: "06",
+    title: "SEO & digital marketing",
+    slug: "seo-digital-marketing",
+    tagline: "Data-driven search dominance, algorithmic visibility, and high-velocity growth channels.",
+    description:
+      "We execute programmatic SEO, technical crawl optimization, and multi-channel performance marketing designed to capture market intent and scale qualified inbound revenue.",
+    offeringsCol1: [
+      "Technical SEO & Core Web Vitals",
+      "Programmatic SEO Architecture",
+      "Search Intent & Keyword Strategy",
+    ],
+    offeringsCol2: [
+      "Conversion Rate Optimization (CRO)",
+      "Performance & Paid Acquisition",
+      "Analytics & Attribution Modeling",
+    ],
+    videoSrc: "/Animate_reference_image_environment_1080p_20260921025358.mp4",
+    posterImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200&auto=format&fit=crop&q=85",
+  },
 ];

@@ -7,6 +7,8 @@ import SmoothScrollProvider from "@/components/common/SmoothScrollProvider";
 import PageTransitionProvider from "@/components/transitions/PageTransitionProvider";
 import { Toaster } from "sonner";
 
+import SplashCursor from "@/components/reuseable/SplashCursor";
+
 const familjenGrotesk = Familjen_Grotesk({
   variable: "--font-familjen",
   subsets: ["latin"],
@@ -44,6 +46,17 @@ export default function RootLayout({
               <SmoothScrollProvider>
                 {children}
               </SmoothScrollProvider>
+              <SplashCursor
+                onlyDarkBackground={true}
+                RAINBOW_MODE={false}
+                COLOR="#707070"
+                DENSITY_DISSIPATION={2.5}
+                VELOCITY_DISSIPATION={1.8}
+                PRESSURE={0.15}
+                CURL={3.5}
+                SPLAT_RADIUS={0.18}
+                SPLAT_FORCE={4500}
+              />
               <Toaster position="top-right" richColors />
             </ThemeProvider>
           </StoreProvider>

@@ -4,6 +4,7 @@ import AboutSection from "./home/_components/about";
 import InfiniteMarqueeBlinds from "@/components/reuseable/InfiniteMarqueeBlinds";
 import GallerySection from "./home/_components/GallerySection";
 import ServicesSection from "./home/_components/ServicesSection";
+import AiDesignSection from "./home/_components/AiDesignSection";
 
 export default function HomePage() {
   return (
@@ -13,6 +14,8 @@ export default function HomePage() {
       <InfiniteMarqueeBlinds />
       <GallerySection />
       <ServicesSection />
+      <AiDesignSection />
     </div>
   );
 }
+

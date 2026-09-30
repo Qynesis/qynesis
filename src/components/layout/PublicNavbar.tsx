@@ -30,14 +30,14 @@ export default function PublicNavbar() {
         className="fixed top-0 left-0 right-0 z-[130] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none"
       >
         {/* Right Action Controls */}
-        <div className="flex items-center gap-3 md:gap-4 relative z-[130] pointer-events-auto">
+        <div className="flex items-center gap-3 md:gap-4 relative z-[130] pointer-events-auto mix-blend-difference">
           {/* Let's Talk CTA */}
           <TransitionLink
             href="/contact"
             onClick={() => setIsMenuOpen(false)}
             className={`px-5 py-2 md:px-6 md:py-2.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all duration-300 no-underline cursor-pointer ${isMenuOpen
-              ? "bg-black text-white hover:bg-neutral-800"
-              : "bg-white text-black hover:bg-amber-400 hover:shadow-lg hover:shadow-amber-400/25"
+              ? "bg-white text-black hover:bg-neutral-200"
+              : "border border-white/40 bg-transparent text-white hover:bg-white hover:text-black"
               }`}
           >
             LET'S TALK
@@ -47,8 +47,8 @@ export default function PublicNavbar() {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${isMenuOpen
-              ? "border border-black bg-white text-black hover:bg-neutral-100 shadow-sm"
-              : "border border-white/20 bg-black/40 backdrop-blur-md text-white hover:bg-white/10 hover:border-white/40"
+              ? "border border-white bg-white text-black hover:bg-neutral-100 shadow-sm"
+              : "border border-white/40 bg-transparent text-white hover:bg-white hover:text-black"
               }`}
           >
             {isMenuOpen ? (

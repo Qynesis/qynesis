@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SERVICES } from "@/data/services";
@@ -56,20 +57,31 @@ export default async function ServiceDetailPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Video & Media Presentation */}
+        {/* Media Presentation */}
         <div className="my-12 md:my-16 w-full rounded-2xl overflow-hidden border border-white/10 bg-[#0d0d0d] relative aspect-[16/9] shadow-2xl">
-          <video
-            src={service.videoSrc}
-            autoPlay
-            loop
-            muted
-            playsInline
-            className="w-full h-full object-cover"
-          />
+          {service.posterImage ? (
+            <Image
+              src={service.posterImage}
+              alt={service.title}
+              fill
+              priority
+              sizes="100vw"
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <video
+              src={service.videoSrc}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
           <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between text-xs font-mono uppercase tracking-widest text-white/80 pointer-events-none">
-            <span>Showcase Reel // {service.indexStr}</span>
-            <span>HD Playback Active</span>
+            <span>Showcase // {service.indexStr}</span>
+            <span>QYNESIS ARCHITECTURE</span>
           </div>
         </div>
 
