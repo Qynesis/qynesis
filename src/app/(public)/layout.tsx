@@ -4,9 +4,9 @@ import PublicFooter from "@/components/layout/PublicFooter";
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col min-h-screen overflow-x-clip">
+    <div className="relative z-10 flex flex-col min-h-screen overflow-x-clip">
       <PublicNavbar />
-      <main className="flex-1 overflow-x-clip">
+      <main className="relative z-10 flex-1 overflow-x-clip">
         {children}
       </main>
       <PublicFooter />

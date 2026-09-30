@@ -10,7 +10,7 @@ export default function AboutSection() {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
-    <section className="relative w-full bg-[#080808] text-white px-6 py-20 md:px-12 md:py-32 overflow-hidden font-[family-name:var(--font-familjen)] select-none">
+    <section className="relative w-full bg-transparent text-white px-6 py-20 md:px-12 md:py-32 overflow-hidden font-[family-name:var(--font-familjen)] select-none">
       {/* MASTER 12-COLUMN ABOUT GRID */}
       <div className="relative z-10 w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
         {/* Left Column Label (Col 1-2) */}

@@ -12,7 +12,7 @@ import { TEAM_MEMBERS, TeamMember } from "@/data/team";
 
 export { PROJECTS, type ProjectData, TEAM_MEMBERS, type TeamMember };
 
-const GALLERY_PROJECTS = PROJECTS.slice(0, 3);
+const GALLERY_PROJECTS = PROJECTS.slice(0, 5);
 const SIX_PROJECTS = PROJECTS.slice(0, 6);
 
 export default function GallerySection() {
@@ -44,7 +44,7 @@ export default function GallerySection() {
   const hasDraggedRef = useRef(false);
 
   // Scroll distribution
-  const projectsScrollDistance = 2400; // 3 projects in gallery
+  const projectsScrollDistance = 3400; // 5 projects in gallery
   const overviewSlideDistance = 1400;  // transition to discover panel
   const helixScrollDistance = 3400;    // 3D spiral ascends from bottom to top
   const gridRevealDistance = 2200;     // 6 projects fly in from every corner
@@ -124,7 +124,7 @@ export default function GallerySection() {
         return Math.max(0, cardTrack.scrollWidth - (dock.clientWidth - pl - pr));
       };
 
-      const projectsDuration = 6;
+      const projectsDuration = 9;
       const slideDuration = 3;
       const helixDuration = 8;
 
@@ -334,19 +334,19 @@ export default function GallerySection() {
     <div
       ref={outerWrapperRef}
       data-theme="dark"
-      className="relative w-full bg-[#070707]"
+      className="relative w-full bg-transparent"
       style={{ height: `calc(100vh + ${totalExtraScroll}px)` }}
     >
       <div
         ref={stickyContainerRef}
         data-theme="dark"
-        className="sticky top-0 w-full h-screen overflow-hidden bg-[#070707] text-white select-none font-[family-name:var(--font-familjen)]"
+        className="sticky top-0 w-full h-screen overflow-hidden bg-transparent text-white select-none font-[family-name:var(--font-familjen)]"
       >
         <div
           ref={foregroundTrackRef}
           className="absolute inset-0 z-20 w-[200vw] h-full flex will-change-transform"
         >
-          {/* SLIDE 1: GALLERY WITH 3 PROJECTS */}
+          {/* SLIDE 1: GALLERY WITH 5 PROJECTS */}
           <div className="relative w-[100vw] h-full shrink-0 overflow-hidden bg-[#070707] text-white">
             <div className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-hidden">
               {GALLERY_PROJECTS.map((proj, idx) => (
@@ -376,7 +376,7 @@ export default function GallerySection() {
               </p>
             </div>
 
-            {/* DOCK SHOWING 3 PROJECTS */}
+            {/* DOCK SHOWING 5 PROJECTS */}
             <div
               ref={dockContainerRef}
               className="absolute bottom-6 md:bottom-8 right-6 md:right-16 z-20 overflow-hidden select-none pointer-events-auto w-[calc(100vw-3rem)] md:w-auto pt-3.5 pb-2 px-2 rounded-2xl"

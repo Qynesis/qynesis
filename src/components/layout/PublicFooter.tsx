@@ -12,7 +12,7 @@ export default function PublicFooter() {
   const [isBookHovered, setIsBookHovered] = useState(false);
 
   return (
-    <footer className="relative w-full bg-[#070707] text-white pt-20 md:pt-28 overflow-hidden font-[family-name:var(--font-familjen)] select-none border-t border-white/10">
+    <footer className="relative w-full text-white pt-20 md:pt-28 overflow-hidden font-[family-name:var(--font-familjen)] select-none border-t border-white/10">
       <FooterAtmosphere
         pointerVelocity={{
           x: 0,

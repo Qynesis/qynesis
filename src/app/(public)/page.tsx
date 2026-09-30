@@ -8,7 +8,7 @@ import AiDesignSection from "./home/_components/AiDesignSection";
 
 export default function HomePage() {
   return (
-    <div className="w-full min-h-screen bg-[#080808] text-white">
+    <div className="w-full min-h-screen bg-transparent text-white">
       <Banner />
       <AboutSection />
       <InfiniteMarqueeBlinds />

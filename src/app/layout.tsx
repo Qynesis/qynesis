@@ -40,23 +40,24 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-[#080808] text-white font-[family-name:var(--font-familjen)] transition-colors duration-200">
+        <SplashCursor
+          zIndex={0}
+          onlyDarkBackground={true}
+          RAINBOW_MODE={false}
+          COLOR="#707070"
+          DENSITY_DISSIPATION={2.5}
+          VELOCITY_DISSIPATION={1.8}
+          PRESSURE={0.15}
+          CURL={3.5}
+          SPLAT_RADIUS={0.18}
+          SPLAT_FORCE={4500}
+        />
         <PageTransitionProvider>
           <StoreProvider>
             <ThemeProvider>
               <SmoothScrollProvider>
                 {children}
               </SmoothScrollProvider>
-              <SplashCursor
-                onlyDarkBackground={true}
-                RAINBOW_MODE={false}
-                COLOR="#707070"
-                DENSITY_DISSIPATION={2.5}
-                VELOCITY_DISSIPATION={1.8}
-                PRESSURE={0.15}
-                CURL={3.5}
-                SPLAT_RADIUS={0.18}
-                SPLAT_FORCE={4500}
-              />
               <Toaster position="top-right" richColors />
             </ThemeProvider>
           </StoreProvider>

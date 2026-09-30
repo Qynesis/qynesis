@@ -314,7 +314,7 @@ export default function InfiniteMarqueeBlinds() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen bg-[#080808] text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none"
+      className="relative w-full h-screen text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none"
     >
       {/* ----------------- SECTION 1: DUAL MARQUEE BACKGROUND ----------------- */}
       <div className="relative z-10 w-full h-full flex flex-col justify-center gap-6 md:gap-14 overflow-hidden">

@@ -36,7 +36,7 @@ export default function ServicesSection() {
   return (
     <section
       data-theme="dark"
-      className="relative w-full bg-[#070707] text-white pt-20 pb-28 md:pt-28 md:pb-36 px-6 md:px-12 font-[family-name:var(--font-familjen)] select-none"
+      className="relative w-full bg-transparent text-white pt-20 pb-28 md:pt-28 md:pb-36 px-6 md:px-12 font-[family-name:var(--font-familjen)] select-none"
     >
       <div className="relative z-10 w-full">
         {/* SECTION HEADER: Small section label matching About/Footer */}
