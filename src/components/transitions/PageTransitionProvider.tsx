@@ -10,6 +10,9 @@ import SvgMorphTransition from "./SvgMorphTransition";
 import CinematicPreloader from "./CinematicPreloader";
 import { markAppReady } from "@/lib/appReady";
 
+// The navbar logo rolls its letters ~0.4s after the intro lands, for ~0.9s
+const INTRO_LANDING_SETTLE_MS = 1400;
+
 interface PageTransitionProviderProps {
   children: React.ReactNode;
   defaultVariant?: TransitionVariant;
@@ -108,8 +111,10 @@ export default function PageTransitionProvider({
   const handlePreloaderComplete = useCallback(() => {
     setShowPreloader(false);
     setForcePreloader(false);
-    // Intro is done: let deferred WebGL / heavy effects initialise now
-    markAppReady();
+    // Intro is done: let deferred WebGL / heavy effects initialise once the
+    // landed navbar logo has finished its letter roll, since their one-off setup
+    // (WebGL contexts, shader compiles) blocks the main thread for a moment
+    setTimeout(markAppReady, INTRO_LANDING_SETTLE_MS);
 
     if (pendingHrefRef.current) {
       const destination = pendingHrefRef.current;
@@ -138,6 +143,8 @@ export default function PageTransitionProvider({
       {showPreloader && (
         <CinematicPreloader
           onComplete={handlePreloaderComplete}
+          // Page shows through as the wordmark flies into the navbar: start it at the top
+          onReveal={resetScroll}
         />
       )}
 

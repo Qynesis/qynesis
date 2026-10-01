@@ -1,18 +1,36 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX, X, Sparkles, Hamburger, Menu } from "lucide-react";
 import Image from "next/image";
+import gsap from "gsap";
 import Logo3DText from "@/components/reuseable/Logo3DText";
 import QynesisGlyph from "@/components/brand/QynesisGlyph";
 import { TransitionLink } from "@/components/transitions/PageTransitionContext";
+import {
+  isNavbarLogoHeld,
+  registerNavbarLogo,
+  subscribeNavbarLogoHeld,
+} from "@/lib/logoHandoff";
 
 export default function PublicNavbar() {
   const [isMuted, setIsMuted] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const logoRef = useRef<HTMLDivElement>(null);
+  const wordmarkRef = useRef<HTMLSpanElement>(null);
+  const markRef = useRef<HTMLSpanElement>(null);
+  const collapseRef = useRef<gsap.core.Timeline | null>(null);
+
+  // While the intro holds the logo, its wordmark is flying in to land on ours
+  const logoHeld = useSyncExternalStore(
+    subscribeNavbarLogoHeld,
+    isNavbarLogoHeld,
+    () => false,
+  );
+  const showMark = isScrolled && !logoHeld;
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 40);
@@ -21,63 +39,126 @@ export default function PublicNavbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Scrolling away from the top folds the wordmark into the Q mark: the letters
+  // slip back into the Q one by one from the end (S, I, S, E, N, Y), then the
+  // flat Q swells into the 3D logo mark. Back at the top it plays in reverse.
+  useEffect(() => {
+    const letters = Array.from(
+      wordmarkRef.current?.querySelectorAll<HTMLElement>("[data-char]") ?? [],
+    );
+    const mark = markRef.current;
+    if (letters.length < 2 || !mark) return;
+    const [q, ...rest] = letters;
+    const animated = [...letters, mark];
+    const reset = () =>
+      gsap.set(animated, { clearProps: "opacity,transform,transformOrigin,filter" });
+
+    const tl = gsap.timeline({
+      paused: true,
+      defaults: { ease: "power2.inOut", immediateRender: false },
+      // Back at the top: drop the inline styles so the wordmark renders untouched
+      onReverseComplete: reset,
+    });
+    tl.fromTo(
+      rest.reverse(),
+      { opacity: 1, x: 0, filter: "blur(0px)" },
+      { opacity: 0, x: -8, filter: "blur(4px)", duration: 0.42, stagger: 0.08 },
+    );
+    // The Q grows into the mark while the mark grows out of it, both from the
+    // left edge (the mark's ring is ~1.85x the glyph's and sits ~4px further in)
+    tl.fromTo(
+      q,
+      { opacity: 1, x: 0, scale: 1 },
+      { opacity: 0, x: 4, scale: 1.85, transformOrigin: "0% 50%", duration: 0.55 },
+      0.62,
+    );
+    tl.fromTo(
+      mark,
+      { opacity: 0, x: -4, scale: 0.54 },
+      { opacity: 1, x: 0, scale: 1, transformOrigin: "0% 50%", duration: 0.55 },
+      0.62,
+    );
+    collapseRef.current = tl;
+
+    return () => {
+      tl.kill();
+      collapseRef.current = null;
+      reset();
+    };
+  }, []);
+
+  useEffect(() => {
+    const tl = collapseRef.current;
+    if (!tl) return;
+    if (showMark) tl.play();
+    else tl.reverse();
+  }, [showMark]);
+
+  useEffect(() => {
+    const el = logoRef.current;
+    if (!el) return;
+    return registerNavbarLogo({
+      el,
+      // Each letter rolls on a cube; the face turned to the viewer is the one on screen
+      letterBoxes: () =>
+        Array.from(el.querySelectorAll("[data-front] svg"), (glyph) =>
+          glyph.getBoundingClientRect(),
+        ),
+    });
+  }, []);
+
   return (
     <>
       {/* ALWAYS-ON FIXED MIX-BLEND-DIFFERENCE LOGO (UNIVERSALLY ADAPTS OVER ANY LIGHT/DARK SECTION) */}
-      <div className="fixed top-0 left-0 w-auto z-[130] px-6 py-5 md:px-12 md:py-6 pointer-events-auto mix-blend-difference">
+      <div
+        ref={logoRef}
+        className="fixed top-0 left-0 w-auto z-[130] px-6 py-5 md:px-12 md:py-6 pointer-events-none mix-blend-difference"
+      >
         <TransitionLink
           href="/"
           aria-label="Qynesis home"
           className="relative flex items-center h-10 group no-underline"
         >
-          {/* Full wordmark at the very top, collapses to the Q mark once scrolled */}
-          <AnimatePresence mode="wait" initial={false}>
-            {isScrolled ? (
-              <motion.span
-                key="mark"
-                className="block"
-                initial={{ opacity: 0, scale: 0.6, rotate: -90 }}
-                animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                exit={{ opacity: 0, scale: 0.6, rotate: 90 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              >
-                {/* Sized to its rendered ~40px so Next serves a 48/96px file instead of
-                    a ~2000px one (decoding that stalled the first scroll) */}
-                <Image
-                  src="/logo-qynesis.png"
-                  alt="Qynesis"
-                  width={44}
-                  height={40}
-                  loading="eager"
-                  className="h-9 md:h-10 w-auto select-none"
-                />
-              </motion.span>
-            ) : (
-              <motion.span
-                key="wordmark"
-                className="block"
-                initial={{ opacity: 0, y: -8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              >
-                <Logo3DText
-                  text="QYNESIS"
-                  initialDelay={3000}
-                  interval={15000}
-                  className="text-xl md:text-2xl text-white select-none"
-                  renderChar={(_, i) => (
-                    <span
-                      className="flex h-full items-center"
-                      style={{ paddingRight: i < 6 ? "0.29em" : 0 }}
-                    >
-                      <QynesisGlyph index={i} />
-                    </span>
-                  )}
-                />
-              </motion.span>
-            )}
-          </AnimatePresence>
+          {/* Full wordmark at the very top; scrolling away folds it into the Q mark
+              (the intro always lands on the wordmark). Only the one on show
+              takes the pointer. */}
+          <span
+            ref={wordmarkRef}
+            className={`block ${showMark ? "" : "pointer-events-auto"}`}
+          >
+            <Logo3DText
+              text="QYNESIS"
+              initialDelay={3000}
+              interval={15000}
+              // Rolls once the intro's wordmark has landed on it
+              paused={logoHeld}
+              className="text-xl md:text-2xl text-white select-none"
+              renderChar={(_, i) => (
+                <span
+                  className="flex h-full items-center"
+                  style={{ paddingRight: i < 6 ? "0.29em" : 0 }}
+                >
+                  <QynesisGlyph index={i} />
+                </span>
+              )}
+            />
+          </span>
+
+          <span
+            ref={markRef}
+            className={`absolute left-0 inset-y-0 flex items-center opacity-0 ${showMark ? "pointer-events-auto" : ""}`}
+          >
+            {/* Sized to its rendered ~40px so Next serves a 48/96px file instead of
+                a ~2000px one (decoding that stalled the first scroll) */}
+            <Image
+              src="/logo-qynesis.png"
+              alt="Qynesis"
+              width={44}
+              height={40}
+              loading="eager"
+              className="h-9 md:h-10 w-auto select-none"
+            />
+          </span>
         </TransitionLink>
       </div>
 

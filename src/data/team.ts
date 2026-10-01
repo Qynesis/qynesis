@@ -1,35 +1,44 @@
+import arafatPhoto from "@/assets/team-members/arafat-2.jpg";
+import armanPhoto from "@/assets/team-members/arman.jpeg";
+import sazzadPhoto from "@/assets/team-members/sazzad.png";
+
 export interface TeamMember {
   id: string;
   name: string;
   role: string;
   discipline: string;
   image: string;
+  /** CSS object-position that keeps the face in frame when the photo is cropped */
+  imagePosition?: string;
   location?: string;
 }
 
 export const TEAM_MEMBERS: TeamMember[] = [
   {
     id: "01",
-    name: "Elena Rostova",
+    name: "Arafat Hossain",
     role: "Founder & Creative Director",
     discipline: "Art Direction & Brand Architecture",
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=1200&auto=format&fit=crop&q=85",
+    image: arafatPhoto.src,
+    imagePosition: "50% 8%",
     location: "Stockholm / Berlin",
   },
   {
     id: "02",
-    name: "Marcus Vance",
+    name: "Arman Hasan",
     role: "Head of Creative Engineering",
     discipline: "WebGL & Interactive Systems",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200&auto=format&fit=crop&q=85",
+    image: armanPhoto.src,
+    imagePosition: "50% 5%",
     location: "London / NYC",
   },
   {
     id: "03",
-    name: "Sophia Lindqvist",
+    name: "Sazzad Hosen",
     role: "Principal 3D & Motion Artist",
     discipline: "Cinematics & Spatial Design",
-    image: "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=1200&auto=format&fit=crop&q=85",
+    image: sazzadPhoto.src,
+    imagePosition: "50% 30%",
     location: "Copenhagen",
   },
   {

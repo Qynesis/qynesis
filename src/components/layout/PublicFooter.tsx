@@ -41,7 +41,11 @@ export default function PublicFooter() {
               onMouseLeave={() => setIsDiscussHovered(false)}
               className="group inline-flex w-max items-center gap-2 whitespace-nowrap border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-base sm:text-lg uppercase tracking-widest font-normal"
             >
-              <FocusInContractText isHovered={isDiscussHovered} as="span" duration={0.4}>
+              <FocusInContractText
+                isHovered={isDiscussHovered}
+                as="span"
+                duration={0.4}
+              >
                 DISCUSS YOUR PROJECT
               </FocusInContractText>
               <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white" />
@@ -53,7 +57,11 @@ export default function PublicFooter() {
               onMouseLeave={() => setIsBookHovered(false)}
               className="group inline-flex w-max items-center gap-2 whitespace-nowrap border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-base sm:text-lg uppercase tracking-widest font-normal"
             >
-              <FocusInContractText isHovered={isBookHovered} as="span" duration={0.4}>
+              <FocusInContractText
+                isHovered={isBookHovered}
+                as="span"
+                duration={0.4}
+              >
                 BOOK A 30-MINUTE CALL
               </FocusInContractText>
               <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white" />
@@ -66,8 +74,11 @@ export default function PublicFooter() {
           {/* Left Sub-info */}
           <div className="md:flex-1 min-w-0 space-y-3">
             <p className="text-sm md:text-base uppercase tracking-widest text-neutral-400 font-medium">
-              QYNESIS {new Date().getFullYear()}
+              © QYNESIS {new Date().getFullYear()}
             </p>
+            <span className="text-sm md:text-base tracking-widest text-neutral-400 font-medium">
+              All right reserved
+            </span>
           </div>
 
           {/* Right Sub-info (Business Enquiry & Social) */}
@@ -80,13 +91,19 @@ export default function PublicFooter() {
               <div className="text-base md:text-lg font-normal text-neutral-200 space-y-2">
                 <p className="flex items-center">
                   <span className="text-neutral-500 mr-2.5">E.</span>
-                  <a href="mailto:hello@qynesis.com" className="hover:underline text-white transition-colors">
+                  <a
+                    href="mailto:hello@qynesis.com"
+                    className="hover:underline text-white transition-colors"
+                  >
                     hello@qynesis.com
                   </a>
                 </p>
                 <p className="flex items-center">
                   <span className="text-neutral-500 mr-2.5">P.</span>
-                  <a href="tel:+919824182099" className="hover:underline text-white transition-colors">
+                  <a
+                    href="tel:+919824182099"
+                    className="hover:underline text-white transition-colors"
+                  >
                     +91 98241 82099
                   </a>
                 </p>
@@ -98,17 +115,32 @@ export default function PublicFooter() {
               <span className="text-sm md:text-base uppercase tracking-widest text-neutral-400 font-medium block">
                 SOCIAL
               </span>
-              <div className="grid grid-cols-2 gap-y-2 gap-x-6 text-base md:text-lg font-normal text-neutral-200">
-                <a href="https://linkedin.com" target="_blank" rel="noreferrer" className=" transition-colors no-underline">
+              <div className="grid grid-cols-1 gap-y-2 gap-x-6 text-base md:text-lg font-normal text-neutral-200">
+                <a
+                  href="https://linkedin.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className=" transition-colors no-underline"
+                >
                   Linkedin
                 </a>
-                <a href="https://facebook.com" target="_blank" rel="noreferrer" className="transition-colors no-underline">
+                <a
+                  href="https://facebook.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="transition-colors no-underline"
+                >
                   Facebook
                 </a>
-                <a href="https://dribbble.com" target="_blank" rel="noreferrer" className="transition-colors no-underline">
+                {/* <a href="https://dribbble.com" target="_blank" rel="noreferrer" className="transition-colors no-underline">
                   Dribbble
-                </a>
-                <a href="https://instagram.com" target="_blank" rel="noreferrer" className="transition-colors no-underline">
+                </a> */}
+                <a
+                  href="https://instagram.com"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="transition-colors no-underline"
+                >
                   Instagram
                 </a>
               </div>

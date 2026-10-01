@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { createPortal } from "react-dom";
 import gsap from "gsap";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import FocusInContractText from "@/components/reuseable/FocusInContractText";
@@ -24,6 +25,13 @@ export default function TeamShowcase() {
   const overlayContentRef = useRef<HTMLDivElement>(null);
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  // The bio overlay is portalled to <body> (client only) so it stacks above the
+  // fixed site navbar instead of inside the page content layer below it
+  const isClient = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const activeRef = useRef<number | null>(null);
   const isAnimatingRef = useRef(false);
 
@@ -213,12 +221,13 @@ export default function TeamShowcase() {
               }}
               onClick={() => openMember(idx)}
               aria-label={`View ${member.name}`}
-              className="group relative block w-full aspect-[4/5] rounded-xl overflow-hidden bg-neutral-900 text-left cursor-pointer shadow-lg will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
+              className="group relative block w-full aspect-[16/23] rounded-xl overflow-hidden bg-neutral-900 text-left cursor-pointer shadow-lg will-change-transform focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
               style={{ visibility: activeIndex === idx ? "hidden" : "visible" }}
             >
               <img
                 src={member.image}
                 alt={member.name}
+                style={{ objectPosition: member.imagePosition }}
                 className="absolute inset-0 w-full h-full object-cover grayscale-[35%] transition-all duration-700 ease-out group-hover:scale-105 group-hover:grayscale-0"
                 loading={idx < 3 ? "eager" : "lazy"}
               />
@@ -250,6 +259,7 @@ export default function TeamShowcase() {
       </div>
 
       {/* FULLSCREEN BIO OVERLAY (expands from the clicked card) */}
+      {isClient && createPortal(
       <div
         ref={overlayRef}
         role="dialog"
@@ -263,6 +273,7 @@ export default function TeamShowcase() {
               ref={overlayImgRef}
               src={active.image}
               alt={active.name}
+              style={{ objectPosition: active.imagePosition }}
               className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/30" />
@@ -309,7 +320,7 @@ export default function TeamShowcase() {
                       type="button"
                       onClick={() => stepMember(-1)}
                       aria-label="Previous member"
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-black cursor-pointer"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-transparent text-white transition-colors duration-300 hover:bg-white hover:text-black cursor-pointer"
                     >
                       <ArrowLeft className="w-5 h-5" />
                     </button>
@@ -317,7 +328,7 @@ export default function TeamShowcase() {
                       type="button"
                       onClick={() => stepMember(1)}
                       aria-label="Next member"
-                      className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 text-white transition-colors duration-300 hover:bg-white hover:text-black cursor-pointer"
+                      className="flex h-11 w-11 items-center justify-center rounded-full border border-white/40 bg-transparent text-white transition-colors duration-300 hover:bg-white hover:text-black cursor-pointer"
                     >
                       <ArrowRight className="w-5 h-5" />
                     </button>
@@ -326,7 +337,9 @@ export default function TeamShowcase() {
               </div>
             </div>
         </>
-      </div>
+      </div>,
+      document.body,
+      )}
     </div>
   );
 }

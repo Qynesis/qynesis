@@ -142,8 +142,9 @@ export default function TeamSection() {
             </span>
           </div>
 
-          {/* 3x2 GRID OF MEMBERS (sized so two rows + header + button fit one screen) */}
-          <div className="w-full mx-auto max-w-[min(1440px,calc((100vh-300px)*2.4))]">
+          {/* 3x2 GRID OF MEMBERS (sized so two rows + header + button fit one screen:
+              two rows of 32:23 cards are ~0.48x the grid width tall) */}
+          <div className="w-full mx-auto max-w-[min(1440px,calc((100vh-300px)*2.09))]">
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-6 w-full">
               {HOME_TEAM.map((member, idx) => (
                 <TransitionLink
@@ -152,11 +153,12 @@ export default function TeamSection() {
                     cardRefs.current[idx] = el;
                   }}
                   href="/team"
-                  className="group relative block w-full aspect-[16/10] rounded-md overflow-hidden shadow-lg bg-neutral-900 transition-shadow duration-500 hover:shadow-2xl will-change-transform"
+                  className="group relative block w-full aspect-[32/23] rounded-md overflow-hidden shadow-lg bg-neutral-900 transition-shadow duration-500 hover:shadow-2xl will-change-transform"
                 >
                   <img
                     src={cardImage(member.image)}
                     alt={member.name}
+                    style={{ objectPosition: member.imagePosition }}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
                     loading="lazy"
                     decoding="async"
