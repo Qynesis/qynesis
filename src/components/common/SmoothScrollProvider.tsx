@@ -4,6 +4,7 @@ import React, { useEffect } from "react";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { onAppReady } from "@/lib/appReady";
 
 export default function SmoothScrollProvider({
   children,
@@ -16,14 +17,19 @@ export default function SmoothScrollProvider({
     // Register GSAP ScrollTrigger plugin
     gsap.registerPlugin(ScrollTrigger);
 
-    // Initialize Lenis smooth scroll with responsive, snappy tuning
+    // Mobile browsers resize the viewport while the address bar shows/hides;
+    // recalculating every trigger on those resizes causes visible scroll jank.
+    ScrollTrigger.config({ ignoreMobileResize: true });
+
+    // Lenis smooth scroll. `lerp` damping (Lenis's default mode) blends each new
+    // wheel tick into the ongoing motion, so continuous wheeling stays fluid
+    // instead of restarting an eased animation on every notch.
     const lenis = new Lenis({
-      duration: 0.9,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      lerp: 0.1,
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 1.05,
+      wheelMultiplier: 1,
       touchMultiplier: 1.5,
       autoResize: true,
     });
@@ -39,7 +45,20 @@ export default function SmoothScrollProvider({
     gsap.ticker.add(updateFn);
     gsap.ticker.lagSmoothing(0);
 
+    // Once the intro is done (and web fonts have settled the layout), measure
+    // every scroll trigger once, so no section works from stale positions.
+    let cancelled = false;
+    const unsubscribe = onAppReady(() => {
+      document.fonts?.ready.then(() => {
+        if (cancelled) return;
+        lenis.resize();
+        ScrollTrigger.refresh();
+      });
+    });
+
     return () => {
+      cancelled = true;
+      unsubscribe();
       gsap.ticker.remove(updateFn);
       lenis.destroy();
     };

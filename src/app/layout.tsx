@@ -45,6 +45,7 @@ export default function RootLayout({
           onlyDarkBackground={true}
           RAINBOW_MODE={false}
           COLOR="#707070"
+          DYE_RESOLUTION={1024}
           DENSITY_DISSIPATION={2.5}
           VELOCITY_DISSIPATION={1.8}
           PRESSURE={0.15}

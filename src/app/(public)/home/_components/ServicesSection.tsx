@@ -41,9 +41,9 @@ export default function ServicesSection() {
       <div className="relative z-10 w-full">
         {/* SECTION HEADER: Small section label matching About/Footer */}
         <div className="w-full mb-12 md:mb-16">
-          <span className="text-base uppercase tracking-wide text-neutral-400 font-medium block">
-            SERVICES
-          </span>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-tight leading-[1.05] text-white">
+            Services
+          </h2>
         </div>
 
         {/* FULL WIDTH ACCORDION LIST */}
@@ -84,9 +84,9 @@ export default function ServicesSection() {
                   aria-expanded={isExpanded}
                   className="w-full !bg-transparent py-8 md:py-10 px-2 sm:px-4 md:px-6 flex items-center justify-between text-left cursor-pointer transition-all duration-300 select-none outline-none"
                 >
-                  <div className="flex items-center gap-4 sm:gap-6 md:gap-8">
+                  <div className="flex flex-1 min-w-0 items-center gap-4 sm:gap-6 md:gap-8">
                     <span
-                      className={`text-xl md:text-2xl transition-all duration-500 ${isExpanded
+                      className={`shrink-0 text-xl md:text-2xl transition-all duration-500 ${isExpanded
                         ? "rotate-45 text-white"
                         : "text-neutral-400 group-hover:text-white group-hover:translate-x-1 group-hover:translate-y-1"
                         }`}
@@ -94,7 +94,7 @@ export default function ServicesSection() {
                       <ArrowDownRight className="w-6 h-6 md:w-8 md:h-8" />
                     </span>
                     <span
-                      className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight leading-none transition-all duration-300 ${isExpanded
+                      className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight leading-[1.1] md:leading-none transition-all duration-300 ${isExpanded
                         ? "text-white"
                         : "text-neutral-300 group-hover:text-white group-hover:translate-x-2"
                         }`}
@@ -103,7 +103,7 @@ export default function ServicesSection() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-6 md:gap-10">
+                  <div className="flex shrink-0 items-center gap-6 md:gap-10 pl-4">
                     <span
                       className={`font-mono text-xs md:text-sm tracking-wider transition-colors duration-300 ${isExpanded ? "text-white" : "text-neutral-400 group-hover:text-white"
                         }`}

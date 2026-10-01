@@ -8,6 +8,7 @@ import {
 } from "./PageTransitionContext";
 import SvgMorphTransition from "./SvgMorphTransition";
 import CinematicPreloader from "./CinematicPreloader";
+import { markAppReady } from "@/lib/appReady";
 
 interface PageTransitionProviderProps {
   children: React.ReactNode;
@@ -31,6 +32,11 @@ export default function PageTransitionProvider({
   const pendingHrefRef = useRef<string | null>(null);
 
   const isTransitioning = phase !== "idle" || showPreloader;
+
+  // Without an intro, heavy effects may start straight away
+  useEffect(() => {
+    if (!enableInitialPreloader) markAppReady();
+  }, [enableInitialPreloader]);
 
   // Reset scroll to top cleanly
   const resetScroll = useCallback(() => {
@@ -102,6 +108,8 @@ export default function PageTransitionProvider({
   const handlePreloaderComplete = useCallback(() => {
     setShowPreloader(false);
     setForcePreloader(false);
+    // Intro is done: let deferred WebGL / heavy effects initialise now
+    markAppReady();
 
     if (pendingHrefRef.current) {
       const destination = pendingHrefRef.current;

@@ -4,6 +4,7 @@ import React, { useRef, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import UnderlineTextButton from "@/components/reuseable/UnderlineTextButton";
+import { setQStageCovered } from "@/lib/qStageEvents";
 
 export interface ProjectSlide {
   id: string;
@@ -104,23 +105,41 @@ export default function InfiniteMarqueeBlinds() {
 
     const ctx = gsap.context(() => {
       // 1. Dual Infinite Horizontal Marquee Loops
+      const marqueeLoops: gsap.core.Tween[] = [];
       if (marqueeTrackRef.current) {
-        gsap.to(marqueeTrackRef.current, {
-          xPercent: -50,
-          repeat: -1,
-          duration: 140,
-          ease: "none",
-        });
+        marqueeLoops.push(
+          gsap.to(marqueeTrackRef.current, {
+            xPercent: -50,
+            repeat: -1,
+            duration: 105, // 3 phrase copies per half -> same px/s as 4 copies over 140s
+            ease: "none",
+            force3D: true,
+            paused: true, // resumed by the visibility trigger below
+          })
+        );
       }
 
       if (marqueeTrackReverseRef.current) {
         gsap.set(marqueeTrackReverseRef.current, { xPercent: -50, force3D: true });
-        gsap.to(marqueeTrackReverseRef.current, {
-          xPercent: 0,
-          repeat: -1,
-          duration: 45,
-          ease: "none",
-          force3D: true,
+        marqueeLoops.push(
+          gsap.to(marqueeTrackReverseRef.current, {
+            xPercent: 0,
+            repeat: -1,
+            duration: 45,
+            ease: "none",
+            force3D: true,
+            paused: true, // resumed by the visibility trigger below
+          })
+        );
+      }
+
+      // Only run the marquee loops while the section is on screen
+      if (containerRef.current && marqueeLoops.length) {
+        ScrollTrigger.create({
+          trigger: containerRef.current,
+          start: "top bottom",
+          end: "bottom top",
+          onToggle: (self) => marqueeLoops.forEach((loop) => (self.isActive ? loop.resume() : loop.pause())),
         });
       }
 
@@ -131,14 +150,23 @@ export default function InfiniteMarqueeBlinds() {
       const cards = cardRefs.current;
       if (!containerRef.current || slatRefs.current.length === 0) return;
 
+      // Once every blind has closed, the opaque panel fully covers the sticky 3D Q
+      // behind this section, so the Q can pause rendering until it is uncovered.
+      const COVERED_AT = 1.35;
+      let qCovered = false;
       const masterTl = gsap.timeline({
+        onUpdate: () => {
+          const covered = masterTl.time() >= COVERED_AT;
+          if (covered !== qCovered) {
+            qCovered = covered;
+            setQStageCovered(covered);
+          }
+        },
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: "+=380%", // Extended scroll range so all cards can scroll up naturally
-          pin: true,
+          end: "bottom bottom", // wrapper is 480vh: 380vh of scroll while the stage is sticky
           scrub: 1,
-          anticipatePin: 1,
         },
       });
 
@@ -239,11 +267,16 @@ export default function InfiniteMarqueeBlinds() {
       }
     }, containerRef);
 
-    return () => ctx.revert();
+    return () => {
+      ctx.revert();
+      setQStageCovered(false);
+    };
   }, []);
 
   const marqueeText = "IMPACT + INSPIRE + INNOVATE + ";
-  const repeatedText = Array(4).fill(marqueeText).join("");
+  // 3 copies per half keeps each half wider than any screen (no seam) while
+  // keeping the painted layer small; the loop duration scales to match speed
+  const repeatedText = Array(3).fill(marqueeText).join("");
 
   const placeholderLogos = [
     {
@@ -314,8 +347,13 @@ export default function InfiniteMarqueeBlinds() {
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-screen text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none"
+      className="relative w-full"
+      // 100vh of stage + 380vh of scroll for the blinds / testimonial cards timeline
+      style={{ height: "480vh" }}
     >
+      {/* CSS sticky stage (instead of a GSAP pin) so the hand-off to the next
+          section is done by the browser and can't lag behind the scroll */}
+      <div className="sticky top-0 w-full h-screen text-white overflow-hidden font-[family-name:var(--font-familjen)] select-none">
       {/* ----------------- SECTION 1: DUAL MARQUEE BACKGROUND ----------------- */}
       <div className="relative z-10 w-full h-full flex flex-col justify-center gap-6 md:gap-14 overflow-hidden">
         {/* Background Corner Slogan */}
@@ -394,10 +432,10 @@ export default function InfiniteMarqueeBlinds() {
         data-theme="light"
         className="absolute inset-0 z-30 w-full h-full bg-[#EAE9E5] text-[#141414] pointer-events-auto flex items-center justify-center px-6 sm:px-12 md:px-16 lg:px-24 will-change-transform"
       >
-        <div className="w-full max-w-[1760px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center h-full py-8 md:py-12">
+        <div className="w-full max-w-[1760px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-16 items-center content-start lg:content-center h-full pt-24 pb-6 sm:pt-28 lg:py-12">
           {/* LEFT COLUMN: STICKY ON TOP EDITORIAL TITLE */}
           <div className="lg:col-span-5 flex flex-col justify-center items-start z-20 pr-4">
-            <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-[6.5rem] font-normal tracking-tight text-[#141414] leading-[0.92] mb-12">
+            <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-[6.5rem] font-normal tracking-tight text-[#141414] leading-[0.92] mb-6 sm:mb-8 lg:mb-12">
               Client Stories <br />
               <span className="text-[#141414]">&amp; explorations</span>
             </h2>
@@ -410,7 +448,7 @@ export default function InfiniteMarqueeBlinds() {
           </div>
 
           {/* RIGHT COLUMN: CARDS CONTAINER WHERE EACH TESTIMONIAL SCROLLS UP FROM BOTTOM */}
-          <div className="lg:col-span-7 relative w-full h-[540px] sm:h-[600px] md:h-[660px] flex items-center justify-center">
+          <div className="lg:col-span-7 relative w-full h-[440px] sm:h-[600px] md:h-[660px] flex items-center justify-center">
             {SLIDES.map((slide, idx) => {
               return (
                 <div
@@ -424,7 +462,7 @@ export default function InfiniteMarqueeBlinds() {
                   {/* Visual Card Artwork (16:10 aspect ratio matching TRIONN) */}
                   <div
                     style={{ background: slide.gradientBg }}
-                    className="relative w-full h-[360px] sm:h-[410px] md:h-[450px] rounded-xl md:rounded-2xl overflow-hidden p-6 md:p-8 flex flex-col justify-between text-white shadow-inner"
+                    className="relative w-full h-[250px] sm:h-[410px] md:h-[450px] rounded-xl md:rounded-2xl overflow-hidden p-5 sm:p-6 md:p-8 flex flex-col justify-between text-white shadow-inner"
                   >
                     {/* Subtle Noise / Grid Accent */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/10 pointer-events-none" />
@@ -447,7 +485,7 @@ export default function InfiniteMarqueeBlinds() {
 
                     {/* Card Big Headline */}
                     <div className="relative z-10">
-                      <h3 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.8rem] font-normal tracking-tight text-white leading-[1.05]">
+                      <h3 className="text-2xl sm:text-4xl md:text-5xl lg:text-[3.8rem] font-normal tracking-tight text-white leading-[1.05]">
                         {slide.heroText}
                       </h3>
                     </div>
@@ -483,6 +521,7 @@ export default function InfiniteMarqueeBlinds() {
             })}
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

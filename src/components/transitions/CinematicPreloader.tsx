@@ -2,17 +2,16 @@
 
 import React, { useEffect, useRef, useCallback } from "react";
 import gsap from "gsap";
+import { WORDMARK_LETTERS } from "@/components/brand/qynesisWordmark";
 
 interface CinematicPreloaderProps {
   onComplete?: () => void;
   speed?: number;
-  strokeWidth?: number;
 }
 
-// ─── 42 VECTOR STROKE FRAGMENTS FORMING THE EXACT QYNASIS LOGO ─────────────
-// ViewBox: 0 0 960 200 (Center at x=480, y=100)
-// Every fragment belongs to a REAL LETTER.
-// At (x: 0, y: 0, rotation: 0, scale: 1), they assemble into ONE PERFECT QYNASIS.
+// ─── 36 FILLED VECTOR FRAGMENTS FORMING THE QYNESIS BRAND WORDMARK ─────────
+// Letter geometry lives in @/components/brand/qynesisWordmark.
+// At (x: 0, y: 0, rotation: 0, scale: 1), they assemble into ONE PERFECT QYNESIS.
 // There is NO separate text layer or hidden logo.
 interface FragmentSpec {
   id: string;
@@ -25,68 +24,39 @@ interface FragmentSpec {
   staggerDelay: number;
 }
 
-const FRAGMENTS: FragmentSpec[] = [
-  // ── Q (8 fragments: cx = 136, r = 42) ──
-  { id: "q-1", letter: "Q", d: "M 136 58 A 42 42 0 0 0 94 100", startX: -850, startY: -450, startRotation: 45, staggerDelay: 0.02 },
-  { id: "q-2", letter: "Q", d: "M 94 100 A 42 42 0 0 0 136 142", startX: -920, startY: 280, startRotation: -40, staggerDelay: 0.08 },
-  { id: "q-3", letter: "Q", d: "M 136 142 A 42 42 0 0 0 166 129", startX: -780, startY: 650, startRotation: 60, staggerDelay: 0.16 },
-  { id: "q-4", letter: "Q", d: "M 166 129 A 42 42 0 0 0 178 100", startX: -680, startY: -580, startRotation: -35, staggerDelay: 0.10 },
-  { id: "q-5", letter: "Q", d: "M 178 100 A 42 42 0 0 0 136 58", startX: -980, startY: -120, startRotation: 25, staggerDelay: 0.05 },
-  { id: "q-6", letter: "Q", d: "M 128 92 L 148 112", startX: -420, startY: -780, startRotation: -65, staggerDelay: 0.19 },
-  { id: "q-7", letter: "Q", d: "M 148 112 L 168 132", startX: -550, startY: 720, startRotation: 55, staggerDelay: 0.13 },
-  { id: "q-8", letter: "Q", d: "M 168 132 L 188 152", startX: -820, startY: 820, startRotation: -25, staggerDelay: 0.23 },
+// Deterministic PRNG so scatter positions are stable between renders
+const mulberry32 = (seed: number) => () => {
+  seed |= 0;
+  seed = (seed + 0x6d2b79f5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
 
-  // ── Y (5 fragments: cx = 256, meet at 256,102) ──
-  { id: "y-1", letter: "Y", d: "M 221 58 L 238.5 80", startX: -380, startY: -820, startRotation: -45, staggerDelay: 0.04 },
-  { id: "y-2", letter: "Y", d: "M 238.5 80 L 256 102", startX: -220, startY: -680, startRotation: 30, staggerDelay: 0.15 },
-  { id: "y-3", letter: "Y", d: "M 291 58 L 273.5 80", startX: 280, startY: -780, startRotation: -50, staggerDelay: 0.06 },
-  { id: "y-4", letter: "Y", d: "M 273.5 80 L 256 102", startX: 420, startY: -620, startRotation: 35, staggerDelay: 0.17 },
-  { id: "y-5", letter: "Y", d: "M 256 102 L 256 142", startX: -180, startY: 820, startRotation: 90, staggerDelay: 0.21 },
+const FRAGMENTS: FragmentSpec[] = (() => {
+  const rand = mulberry32(7);
+  const between = (min: number, max: number) => min + rand() * (max - min);
+  const letterCount: Record<string, number> = {};
 
-  // ── N (6 fragments: cx = 376, left=341, right=411) ──
-  { id: "n-1", letter: "N", d: "M 341 58 L 341 100", startX: -320, startY: 780, startRotation: -20, staggerDelay: 0.03 },
-  { id: "n-2", letter: "N", d: "M 341 100 L 341 142", startX: 120, startY: 860, startRotation: 40, staggerDelay: 0.16 },
-  { id: "n-3", letter: "N", d: "M 341 58 L 376 100", startX: -60, startY: -820, startRotation: -60, staggerDelay: 0.09 },
-  { id: "n-4", letter: "N", d: "M 376 100 L 411 142", startX: 360, startY: 720, startRotation: 50, staggerDelay: 0.19 },
-  { id: "n-5", letter: "N", d: "M 411 58 L 411 100", startX: 220, startY: -780, startRotation: -30, staggerDelay: 0.05 },
-  { id: "n-6", letter: "N", d: "M 411 100 L 411 142", startX: 480, startY: 820, startRotation: 45, staggerDelay: 0.24 },
+  return WORDMARK_LETTERS.flatMap(({ letter, cx, shapes }) => {
+    letterCount[letter] = (letterCount[letter] ?? 0) + 1;
+    const key = `${letter.toLowerCase()}${letterCount[letter]}`;
 
-  // ── A (6 fragments: cx = 480, apex=480,58) ──
-  { id: "a-1", letter: "A", d: "M 480 58 L 462.5 100", startX: 0, startY: -860, startRotation: 35, staggerDelay: 0.02 },
-  { id: "a-2", letter: "A", d: "M 462.5 100 L 445 142", startX: -460, startY: 760, startRotation: -55, staggerDelay: 0.12 },
-  { id: "a-3", letter: "A", d: "M 480 58 L 497.5 100", startX: 360, startY: -820, startRotation: -40, staggerDelay: 0.07 },
-  { id: "a-4", letter: "A", d: "M 497.5 100 L 515 142", startX: 560, startY: 860, startRotation: 60, staggerDelay: 0.20 },
-  { id: "a-5", letter: "A", d: "M 458 114 L 480 114", startX: -260, startY: 660, startRotation: 90, staggerDelay: 0.11 },
-  { id: "a-6", letter: "A", d: "M 480 114 L 502 114", startX: 320, startY: -640, startRotation: -90, staggerDelay: 0.17 },
-
-  // ── S1 (7 fragments: cx = 584) ──
-  { id: "s1-1", letter: "S", d: "M 614 74 C 610 65 602 60 594 58", startX: 620, startY: -760, startRotation: -45, staggerDelay: 0.04 },
-  { id: "s1-2", letter: "S", d: "M 594 58 C 579 58 564 62 558 72", startX: 820, startY: -620, startRotation: 50, staggerDelay: 0.14 },
-  { id: "s1-3", letter: "S", d: "M 558 72 C 554 80 560 88 572 92", startX: 470, startY: -860, startRotation: -30, staggerDelay: 0.08 },
-  { id: "s1-4", letter: "S", d: "M 572 92 C 584 96 598 100 606 106", startX: 720, startY: 360, startRotation: 75, staggerDelay: 0.21 },
-  { id: "s1-5", letter: "S", d: "M 606 106 C 616 114 614 124 604 132", startX: 660, startY: 760, startRotation: -60, staggerDelay: 0.12 },
-  { id: "s1-6", letter: "S", d: "M 604 132 C 596 138 582 138 572 136", startX: 860, startY: 720, startRotation: 40, staggerDelay: 0.18 },
-  { id: "s1-7", letter: "S", d: "M 572 136 C 564 134 558 128 554 122", startX: 520, startY: 860, startRotation: -25, staggerDelay: 0.25 },
-
-  // ── I (3 fragments: cx = 688) ──
-  { id: "i-1", letter: "I", d: "M 688 58 L 688 142", startX: 410, startY: 870, startRotation: 90, staggerDelay: 0.05 },
-  { id: "i-2", letter: "I", d: "M 674 58 L 702 58", startX: 660, startY: -820, startRotation: -45, staggerDelay: 0.14 },
-  { id: "i-3", letter: "I", d: "M 674 142 L 702 142", startX: 760, startY: 820, startRotation: 35, staggerDelay: 0.22 },
-
-  // ── S2 (7 fragments: cx = 808) ──
-  { id: "s2-1", letter: "S", d: "M 838 74 C 834 65 826 60 818 58", startX: 910, startY: -570, startRotation: -50, staggerDelay: 0.03 },
-  { id: "s2-2", letter: "S", d: "M 818 58 C 803 58 788 62 782 72", startX: 1060, startY: -320, startRotation: 40, staggerDelay: 0.13 },
-  { id: "s2-3", letter: "S", d: "M 782 72 C 778 80 784 88 796 92", startX: 810, startY: -820, startRotation: -35, staggerDelay: 0.07 },
-  { id: "s2-4", letter: "S", d: "M 796 92 C 808 96 822 100 830 106", startX: 1020, startY: 220, startRotation: 65, staggerDelay: 0.20 },
-  { id: "s2-5", letter: "S", d: "M 830 106 C 840 114 838 124 828 132", startX: 960, startY: 720, startRotation: -70, staggerDelay: 0.11 },
-  { id: "s2-6", letter: "S", d: "M 828 132 C 820 138 806 138 796 136", startX: 1120, startY: 570, startRotation: 45, staggerDelay: 0.17 },
-  { id: "s2-7", letter: "S", d: "M 796 136 C 788 134 782 128 778 122", startX: 860, startY: 870, startRotation: -30, staggerDelay: 0.24 },
-];
+    return shapes.map((d, i) => ({
+      id: `${key}-${i + 1}`,
+      letter,
+      d,
+      startX: Math.round((cx - 480) * 1.4 + between(-320, 320)),
+      startY: Math.round((rand() < 0.5 ? -1 : 1) * between(480, 860)),
+      startRotation: Math.round(between(-75, 75)),
+      staggerDelay: Math.round(between(0.02, 0.25) * 100) / 100,
+    }));
+  });
+})();
 
 export default function CinematicPreloader({
   onComplete,
   speed = 1,
-  strokeWidth = 15,
 }: CinematicPreloaderProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const topCurtainRef = useRef<HTMLDivElement>(null);
@@ -113,6 +83,10 @@ export default function CinematicPreloader({
   useEffect(() => {
     document.body.style.overflow = "hidden";
 
+    // If a frame arrives late (page still booting), stretch the timeline instead
+    // of jumping ahead, so the intro never visibly skips. Restored for Lenis after.
+    gsap.ticker.lagSmoothing(60, 33);
+
     const ctx = gsap.context(() => {
       const dur = 1 / speed;
 
@@ -121,6 +95,7 @@ export default function CinematicPreloader({
         defaults: { ease: "power3.inOut" },
         onComplete: () => {
           document.body.style.overflow = "";
+          gsap.ticker.lagSmoothing(0);
           if (onComplete) onComplete();
         },
       });
@@ -138,10 +113,10 @@ export default function CinematicPreloader({
       // 3.35 – 3.55s: Horizontal line expands
       // 3.55 – 3.80s: Top & bottom curtains split open revealing homepage
       const T_BLACK = 0;
-      const T_ENTER = 0.30 * dur;
-      const T_STILLNESS = 2.20 * dur;
+      const T_ENTER = 0.3 * dur;
+      const T_STILLNESS = 2.2 * dur;
       const T_SWEEP = 2.75 * dur;
-      const T_COMPRESS = 3.10 * dur;
+      const T_COMPRESS = 3.1 * dur;
       const T_EXPAND = 3.35 * dur;
       const T_SPLIT = 3.55 * dur;
 
@@ -154,10 +129,14 @@ export default function CinematicPreloader({
       tl.addLabel("split", T_SPLIT);
 
       // Initial curtain states
-      if (topCurtainRef.current) gsap.set(topCurtainRef.current, { yPercent: 0 });
-      if (bottomCurtainRef.current) gsap.set(bottomCurtainRef.current, { yPercent: 0 });
-      if (centerLineRef.current) gsap.set(centerLineRef.current, { scaleX: 0, opacity: 0 });
-      if (sweepRectRef.current) gsap.set(sweepRectRef.current, { opacity: 0, x: -150 });
+      if (topCurtainRef.current)
+        gsap.set(topCurtainRef.current, { yPercent: 0 });
+      if (bottomCurtainRef.current)
+        gsap.set(bottomCurtainRef.current, { yPercent: 0 });
+      if (centerLineRef.current)
+        gsap.set(centerLineRef.current, { scaleX: 0, opacity: 0 });
+      if (sweepRectRef.current)
+        gsap.set(sweepRectRef.current, { opacity: 0, x: -150 });
 
       // ── ANIMATE EACH REAL FRAGMENT FROM SCATTERED POSITION TO SVG REST (0,0) ──
       FRAGMENTS.forEach((frag, idx) => {
@@ -168,14 +147,14 @@ export default function CinematicPreloader({
         gsap.set(el, { transformOrigin: "50% 50%" });
 
         const startTime = T_ENTER + frag.staggerDelay * dur;
-        const assembleDuration = (1.80 - frag.staggerDelay * 0.5) * dur;
+        const assembleDuration = (1.8 - frag.staggerDelay * 0.5) * dur;
 
         // 1. Fade in from black as it enters the viewport
         tl.fromTo(
           el,
           { opacity: 0 },
           { opacity: 1, duration: 0.35 * dur, ease: "power2.out" },
-          startTime
+          startTime,
         );
 
         // 2. Physical flight: from scattered (startX, startY, startRotation) back to (0, 0, 0)
@@ -196,7 +175,7 @@ export default function CinematicPreloader({
             duration: assembleDuration,
             ease: "expo.out",
           },
-          startTime
+          startTime,
         );
       });
 
@@ -205,14 +184,22 @@ export default function CinematicPreloader({
 
       // ── 2.75s – 3.05s: SUBTLE LIGHT SWEEP ACROSS THE ASSEMBLED SVG ─────────
       if (sweepRectRef.current) {
-        tl.to(sweepRectRef.current, { opacity: 0.85, duration: 0.06 * dur }, T_SWEEP);
+        tl.to(
+          sweepRectRef.current,
+          { opacity: 0.85, duration: 0.06 * dur },
+          T_SWEEP,
+        );
         tl.fromTo(
           sweepRectRef.current,
           { x: 30 },
           { x: 880, duration: 0.34 * dur, ease: "power2.inOut" },
-          T_SWEEP
+          T_SWEEP,
         );
-        tl.to(sweepRectRef.current, { opacity: 0, duration: 0.08 * dur }, T_SWEEP + 0.28 * dur);
+        tl.to(
+          sweepRectRef.current,
+          { opacity: 0, duration: 0.08 * dur },
+          T_SWEEP + 0.28 * dur,
+        );
       }
 
       // ── 3.10s – 3.35s: VERTICAL LOGO COMPRESSION INTO HORIZONTAL LINE ───────
@@ -225,7 +212,7 @@ export default function CinematicPreloader({
             ease: "power4.inOut",
             transformOrigin: "50% 50%",
           },
-          T_COMPRESS
+          T_COMPRESS,
         );
         tl.to(
           logoGroupRef.current,
@@ -234,7 +221,7 @@ export default function CinematicPreloader({
             duration: 0.08 * dur,
             ease: "power2.in",
           },
-          T_COMPRESS + 0.16 * dur
+          T_COMPRESS + 0.16 * dur,
         );
       }
 
@@ -249,7 +236,7 @@ export default function CinematicPreloader({
             duration: 0.22 * dur,
             ease: "expo.inOut",
           },
-          T_EXPAND - 0.04 * dur
+          T_EXPAND - 0.04 * dur,
         );
       }
 
@@ -263,7 +250,7 @@ export default function CinematicPreloader({
             duration: 0.28 * dur,
             ease: "power3.inOut",
           },
-          T_SPLIT
+          T_SPLIT,
         );
       }
       if (bottomCurtainRef.current) {
@@ -274,7 +261,7 @@ export default function CinematicPreloader({
             duration: 0.28 * dur,
             ease: "power3.inOut",
           },
-          T_SPLIT
+          T_SPLIT,
         );
       }
 
@@ -287,7 +274,7 @@ export default function CinematicPreloader({
             duration: 0.14 * dur,
             ease: "power2.out",
           },
-          T_SPLIT + 0.04 * dur
+          T_SPLIT + 0.04 * dur,
         );
       }
     }, containerRef);
@@ -302,6 +289,7 @@ export default function CinematicPreloader({
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       ctx.revert();
+      gsap.ticker.lagSmoothing(0);
       document.body.style.overflow = "";
     };
   }, [handleSkip, onComplete, speed]);
@@ -335,14 +323,20 @@ export default function CinematicPreloader({
       >
         <svg
           ref={svgRef}
-          viewBox="80 48 780 110"
-          className="w-[94vw] max-w-[1360px] h-auto overflow-visible select-none"
+          viewBox="95 38 770 124"
+          className="w-[88vw] max-w-[1200px] h-auto overflow-visible select-none"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
             {/* Subtle light sweep gradient */}
-            <linearGradient id="qynasis-sweep" x1="0%" y1="0%" x2="100%" y2="0%">
+            <linearGradient
+              id="qynesis-sweep"
+              x1="0%"
+              y1="0%"
+              x2="100%"
+              y2="0%"
+            >
               <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0" />
               <stop offset="40%" stopColor="#FFFFFF" stopOpacity="0.1" />
               <stop offset="50%" stopColor="#FFFFFF" stopOpacity="0.8" />
@@ -352,12 +346,12 @@ export default function CinematicPreloader({
           </defs>
 
           {/* 
-            THE QYNASIS LOGO:
-            Formed ENTIRELY by the 42 vector stroke fragments.
+            THE QYNESIS LOGO:
+            Formed ENTIRELY by the filled vector fragments.
             When x=0, y=0, rotation=0, these paths assemble into the complete logo.
             NO HTML text. NO separate font layer.
           */}
-          <g id="qynasis-logo" ref={logoGroupRef}>
+          <g id="qynesis-logo" ref={logoGroupRef}>
             {FRAGMENTS.map((frag, idx) => (
               <path
                 key={frag.id}
@@ -366,11 +360,14 @@ export default function CinematicPreloader({
                   fragmentRefs.current[idx] = el;
                 }}
                 d={frag.d}
+                fill="#FFFFFF"
+                // Hairline stroke hides anti-aliasing seams between touching pieces
                 stroke="#FFFFFF"
-                strokeWidth={strokeWidth}
-                strokeLinecap="round"
+                strokeWidth={1}
                 strokeLinejoin="round"
-                fill="none"
+                // Hidden in the server HTML so the assembled logo never flashes
+                // before the scatter animation takes over
+                style={{ opacity: 0 }}
               />
             ))}
 
@@ -378,10 +375,10 @@ export default function CinematicPreloader({
             <rect
               ref={sweepRectRef}
               x="50"
-              y="48"
+              y="38"
               width="90"
-              height="110"
-              fill="url(#qynasis-sweep)"
+              height="124"
+              fill="url(#qynesis-sweep)"
               opacity="0"
               style={{ mixBlendMode: "screen", pointerEvents: "none" }}
             />
@@ -393,7 +390,8 @@ export default function CinematicPreloader({
           ref={centerLineRef}
           className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-[2px] bg-white pointer-events-none"
           style={{
-            boxShadow: "0 0 20px 4px rgba(255,255,255,0.85), 0 0 6px 1px rgba(255,255,255,1)",
+            boxShadow:
+              "0 0 20px 4px rgba(255,255,255,0.85), 0 0 6px 1px rgba(255,255,255,1)",
             transform: "scaleX(0)",
             transformOrigin: "50% 50%",
             zIndex: 30,
@@ -433,7 +431,7 @@ export default function CinematicPreloader({
             textTransform: "uppercase",
           }}
         >
-          QYNASIS
+          QYNESIS
         </span>
       </div>
     </div>

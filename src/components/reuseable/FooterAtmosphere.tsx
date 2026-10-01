@@ -6,8 +6,16 @@ interface FooterAtmosphereProps {
   pointerVelocity?: { x: number; y: number };
 }
 
+// The particles drift ~0.3px per frame, so 30fps is visually identical to 60fps
+const FRAME_INTERVAL = 1000 / 30;
+
 export default function FooterAtmosphere({ pointerVelocity }: FooterAtmosphereProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Read through a ref so a new object from the parent doesn't restart the loop
+  const velocityRef = useRef(pointerVelocity);
+  useEffect(() => {
+    velocityRef.current = pointerVelocity;
+  }, [pointerVelocity]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -15,17 +23,16 @@ export default function FooterAtmosphere({ pointerVelocity }: FooterAtmospherePr
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    let animId: number;
+    let animId = 0;
+    let lastDraw = 0;
     let width = (canvas.width = canvas.offsetWidth || 1200);
     let height = (canvas.height = canvas.offsetHeight || 240);
 
-    const handleResize = () => {
-      if (!canvas) return;
+    const resizeObserver = new ResizeObserver(() => {
       width = canvas.width = canvas.offsetWidth || 1200;
       height = canvas.height = canvas.offsetHeight || 240;
-    };
-
-    window.addEventListener("resize", handleResize);
+    });
+    resizeObserver.observe(canvas);
 
     // Subtle atmospheric smoke particles
     const numParticles = 24;
@@ -38,16 +45,16 @@ export default function FooterAtmosphere({ pointerVelocity }: FooterAtmospherePr
       alpha: 0.03 + Math.random() * 0.05,
     }));
 
-    const render = () => {
+    const draw = (steps: number) => {
       ctx.clearRect(0, 0, width, height);
 
       // Reaction to pointer velocity
-      const pVx = (pointerVelocity?.x || 0) * 0.05;
-      const pVy = (pointerVelocity?.y || 0) * 0.05;
+      const pVx = (velocityRef.current?.x || 0) * 0.05;
+      const pVy = (velocityRef.current?.y || 0) * 0.05;
 
       particles.forEach((p) => {
-        p.x += p.vx + pVx;
-        p.y += p.vy + pVy;
+        p.x += (p.vx + pVx) * steps;
+        p.y += (p.vy + pVy) * steps;
 
         // Wrap around bounds
         if (p.x < -p.r) p.x = width + p.r;
@@ -65,17 +72,35 @@ export default function FooterAtmosphere({ pointerVelocity }: FooterAtmospherePr
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fill();
       });
-
-      animId = requestAnimationFrame(render);
     };
 
-    render();
+    const loop = (time: number) => {
+      animId = requestAnimationFrame(loop);
+      if (time - lastDraw < FRAME_INTERVAL) return;
+      // Advance by the 60fps-equivalent number of steps so drift speed is unchanged
+      const steps = lastDraw ? Math.min(4, (time - lastDraw) / (1000 / 60)) : 1;
+      lastDraw = time;
+      draw(steps);
+    };
+
+    // Only animate while the footer is actually on screen
+    const visibility = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !animId) {
+        lastDraw = 0;
+        animId = requestAnimationFrame(loop);
+      } else if (!entry.isIntersecting && animId) {
+        cancelAnimationFrame(animId);
+        animId = 0;
+      }
+    });
+    visibility.observe(canvas);
 
     return () => {
       cancelAnimationFrame(animId);
-      window.removeEventListener("resize", handleResize);
+      visibility.disconnect();
+      resizeObserver.disconnect();
     };
-  }, [pointerVelocity]);
+  }, []);
 
   return (
     <canvas

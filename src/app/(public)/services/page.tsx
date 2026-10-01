@@ -82,9 +82,9 @@ export default function ServicesPage() {
                 aria-expanded={isExpanded}
                 className="w-full !bg-transparent py-8 md:py-10 px-6 md:px-12 flex items-center justify-between text-left cursor-pointer transition-all duration-300 select-none outline-none"
               >
-                <div className="flex items-center gap-4 sm:gap-6 md:gap-8">
+                <div className="flex flex-1 min-w-0 items-center gap-4 sm:gap-6 md:gap-8">
                   <span
-                    className={`text-xl md:text-2xl transition-all duration-500 ${
+                    className={`shrink-0 text-xl md:text-2xl transition-all duration-500 ${
                       isExpanded
                         ? "rotate-45 text-white"
                         : "text-neutral-400 group-hover:text-white group-hover:translate-x-1 group-hover:translate-y-1"
@@ -93,7 +93,7 @@ export default function ServicesPage() {
                     <ArrowDownRight className="w-6 h-6 md:w-8 md:h-8" />
                   </span>
                   <span
-                    className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight leading-none transition-all duration-300 ${
+                    className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight leading-[1.1] md:leading-none transition-all duration-300 ${
                       isExpanded
                         ? "text-white"
                         : "text-neutral-300 group-hover:text-white group-hover:translate-x-2"
@@ -103,7 +103,7 @@ export default function ServicesPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center gap-6 md:gap-10">
+                <div className="flex shrink-0 items-center gap-6 md:gap-10 pl-4">
                   <span
                     className={`font-mono text-xs md:text-sm tracking-wider transition-colors duration-300 ${
                       isExpanded ? "text-white" : "text-neutral-400 group-hover:text-white"

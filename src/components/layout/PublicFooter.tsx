@@ -4,7 +4,9 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import FocusInContractText from "@/components/reuseable/FocusInContractText";
-import InteractiveMusicLines from "@/components/reuseable/InteractiveMusicLines";
+// Music line-art wordmark temporarily disabled — keep for later
+// import InteractiveMusicLines from "@/components/reuseable/InteractiveMusicLines";
+import BrandWordmark from "@/components/brand/BrandWordmark";
 import FooterAtmosphere from "../reuseable/FooterAtmosphere";
 
 export default function PublicFooter() {
@@ -12,31 +14,32 @@ export default function PublicFooter() {
   const [isBookHovered, setIsBookHovered] = useState(false);
 
   return (
-    <footer className="relative w-full text-white pt-20 md:pt-28 overflow-hidden font-[family-name:var(--font-familjen)] select-none border-t border-white/10">
+    <footer className="relative w-full min-h-screen flex flex-col text-white pt-28 overflow-hidden font-[family-name:var(--font-familjen)] select-none">
       <FooterAtmosphere
         pointerVelocity={{
           x: 0,
           y: 0,
         }}
       />
-      <div className="w-full px-6 md:px-12">
+      {/* Full-screen footer: content at the top, wordmark pinned to the bottom */}
+      <div className="w-full flex-1 flex flex-col px-6 md:px-12">
         {/* TOP ROW: BIG HEADLINE & CALLOUT LINKS */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 items-start mb-16">
+        <div className="w-full flex flex-col md:flex-row md:items-start md:justify-between gap-6 md:gap-8 mb-10 md:mb-16">
           {/* Left: Giant Callout Headline */}
-          <div className="md:col-span-7">
+          <div className="md:flex-1 min-w-0">
             <h2 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl -ml-1 font-normal tracking-tight leading-[0.98] text-white">
               Ready to build <br />
               <span className="font-normal text-white">something bold?</span>
             </h2>
           </div>
 
-          {/* Right: Callout Action Links */}
-          <div className="md:col-span-5 flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 pt-4 md:pt-16 md:justify-end">
+          {/* Right: Callout Action Links — identical block to Business Enquiry / Social below so edges line up */}
+          <div className="w-full md:w-[min(36rem,48%)] md:shrink-0 grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4 sm:gap-y-6 items-start md:pt-16">
             <a
               href="#discuss"
               onMouseEnter={() => setIsDiscussHovered(true)}
               onMouseLeave={() => setIsDiscussHovered(false)}
-              className="group inline-flex items-center gap-2 border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-lg uppercase tracking-widest font-normal"
+              className="group inline-flex w-max items-center gap-2 whitespace-nowrap border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-base sm:text-lg uppercase tracking-widest font-normal"
             >
               <FocusInContractText isHovered={isDiscussHovered} as="span" duration={0.4}>
                 DISCUSS YOUR PROJECT
@@ -48,7 +51,7 @@ export default function PublicFooter() {
               href="#book"
               onMouseEnter={() => setIsBookHovered(true)}
               onMouseLeave={() => setIsBookHovered(false)}
-              className="group inline-flex items-center gap-2 border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-lg uppercase tracking-widest font-normal"
+              className="group inline-flex w-max items-center gap-2 whitespace-nowrap border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-base sm:text-lg uppercase tracking-widest font-normal"
             >
               <FocusInContractText isHovered={isBookHovered} as="span" duration={0.4}>
                 BOOK A 30-MINUTE CALL
@@ -59,16 +62,16 @@ export default function PublicFooter() {
         </div>
 
         {/* MIDDLE ROW: COPYRIGHT & ENQUIRY / SOCIAL */}
-        <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start mb-16 md:mb-20">
+        <div className="w-full flex flex-col md:flex-row md:items-start md:justify-between gap-6 md:gap-8 mb-10 md:mb-20">
           {/* Left Sub-info */}
-          <div className="md:col-span-5 space-y-3">
+          <div className="md:flex-1 min-w-0 space-y-3">
             <p className="text-sm md:text-base uppercase tracking-widest text-neutral-400 font-medium">
               QYNESIS {new Date().getFullYear()}
             </p>
           </div>
 
           {/* Right Sub-info (Business Enquiry & Social) */}
-          <div className="md:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-8 md:gap-12 md:ml-auto w-full max-w-xl">
+          <div className="w-full md:w-[min(36rem,48%)] md:shrink-0 grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-6 sm:gap-y-8">
             {/* Business Enquiry */}
             <div className="space-y-3">
               <span className="text-sm md:text-base uppercase tracking-widest text-neutral-400 font-medium block">
@@ -113,9 +116,14 @@ export default function PublicFooter() {
           </div>
         </div>
 
-        {/* BOTTOM GIANT INTERACTIVE MUSIC LINE-ART BRAND GRAPHIC */}
-        <div className="w-full">
+        {/* BOTTOM GIANT INTERACTIVE MUSIC LINE-ART BRAND GRAPHIC — temporarily disabled, keep for later */}
+        {/* <div className="w-full">
           <InteractiveMusicLines />
+        </div> */}
+
+        {/* BOTTOM GIANT SOLID BRAND WORDMARK (same lettering as the intro and navbar logo) */}
+        <div className="w-full mt-auto pt-2 md:pt-4 pb-8 md:pb-14 text-white">
+          <BrandWordmark />
         </div>
       </div>
     </footer>

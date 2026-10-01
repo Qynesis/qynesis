@@ -1,6 +1,13 @@
 // @ts-nocheck
 'use client';
 import { useEffect, useRef } from 'react';
+import { afterAppReady } from '@/lib/appReady';
+
+// The simulation sleeps once the smoke has faded and no pointer input has
+// arrived for this long (dissipation leaves < 0.1% after ~3s), and wakes on input.
+const IDLE_AFTER_MS = 3500;
+// Smoke is soft — rendering above 1x device pixels costs GPU time for no visible gain
+const MAX_PIXEL_RATIO = 1;
 
 export interface SplashCursorProps {
   SIM_RESOLUTION?: number;
@@ -108,11 +115,78 @@ function SplashCursor({
   const animationFrameId = useRef<number | null>(null);
 
   useEffect(() => {
+    let teardown: (() => void) | undefined;
+    // Start after the intro, at idle time, so compiling the shader programs and
+    // allocating simulation buffers never competes with the intro animation
+    const cancelStart = afterAppReady(() => {
+      teardown = setupFluid();
+    }, { delay: 1000, timeout: 1500 });
+
+    return () => {
+      cancelStart();
+      teardown?.();
+    };
+
+    function setupFluid(): (() => void) | undefined {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
     // Track if the effect is still active for cleanup
     let isActive = true;
+    let sleeping = false;
+    let lastInputAt = Date.now();
+
+    // Background darkness under the pointer changes slowly; re-checking it on every
+    // mousemove forced a full layout per event (very costly while scrolling)
+    const darkCache = { x: -1e4, y: -1e4, t: 0, value: true };
+    function isDarkAt(x: number, y: number) {
+      const now = performance.now();
+      if (now - darkCache.t < 120 && Math.abs(x - darkCache.x) + Math.abs(y - darkCache.y) < 48) {
+        return darkCache.value;
+      }
+      darkCache.value = isElementBackgroundDark(x, y);
+      darkCache.x = x;
+      darkCache.y = y;
+      darkCache.t = now;
+      return darkCache.value;
+    }
+
+    function wake() {
+      lastInputAt = Date.now();
+      if (sleeping && isActive) {
+        sleeping = false;
+        canvas.style.visibility = 'visible';
+        lastUpdateTime = Date.now();
+        lastFrameAt = 0;
+        animationFrameId.current = requestAnimationFrame(updateFrame);
+      }
+    }
+
+    // Adaptive quality: if the device clearly can't keep up while the smoke is
+    // active (most recent frames slower than ~20ms), drop to a lighter dye buffer
+    let lastFrameAt = 0;
+    let slowFrames = 0;
+    let sampledFrames = 0;
+    let downgraded = false;
+    function trackFrameCost() {
+      const now = performance.now();
+      if (lastFrameAt) {
+        sampledFrames++;
+        if (now - lastFrameAt > 20) slowFrames++;
+        if (sampledFrames >= 90) {
+          if (!downgraded && slowFrames / sampledFrames > 0.6) {
+            downgraded = true;
+            config.DYE_RESOLUTION = Math.min(config.DYE_RESOLUTION, 512);
+            config.SHADING = false;
+            updateKeywords();
+            initFramebuffers();
+          }
+          sampledFrames = 0;
+          slowFrames = 0;
+        }
+      }
+      lastFrameAt = now;
+    }
 
     function pointerPrototype(this: any) {
       this.id = -1;
@@ -254,19 +328,29 @@ function SplashCursor({
       return status === glCtx.FRAMEBUFFER_COMPLETE;
     }
 
+    // Shaders compile in parallel on the driver's threads (KHR_parallel_shader_compile):
+    // nothing queries compile/link status or uniforms until every program reports
+    // completion, so the ~11 compiles never block the main thread.
+    const parallelCompile = gl.getExtension('KHR_parallel_shader_compile');
+    const pendingPrograms: any[] = [];
+
     class Material {
       vertexShader: any;
       fragmentShaderSource: string;
       programs: any[];
       activeProgram: any;
-      uniforms: any;
+      private cachedUniforms: any;
 
       constructor(vertexShader: any, fragmentShaderSource: string) {
         this.vertexShader = vertexShader;
         this.fragmentShaderSource = fragmentShaderSource;
         this.programs = [];
         this.activeProgram = null;
-        this.uniforms = [];
+        this.cachedUniforms = null;
+      }
+      get uniforms() {
+        if (!this.cachedUniforms) this.cachedUniforms = getUniforms(this.activeProgram);
+        return this.cachedUniforms;
       }
       setKeywords(keywords: string[]) {
         let hash = 0;
@@ -278,7 +362,7 @@ function SplashCursor({
           this.programs[hash] = program;
         }
         if (program === this.activeProgram) return;
-        this.uniforms = getUniforms(program);
+        this.cachedUniforms = null;
         this.activeProgram = program;
       }
       bind() {
@@ -287,13 +371,16 @@ function SplashCursor({
     }
 
     class Program {
-      uniforms: any;
       program: any;
+      private cachedUniforms: any;
 
       constructor(vertexShader: any, fragmentShader: any) {
-        this.uniforms = {};
         this.program = createProgram(vertexShader, fragmentShader);
-        this.uniforms = getUniforms(this.program);
+        this.cachedUniforms = null;
+      }
+      get uniforms() {
+        if (!this.cachedUniforms) this.cachedUniforms = getUniforms(this.program);
+        return this.cachedUniforms;
       }
       bind() {
         gl.useProgram(this.program);
@@ -305,8 +392,27 @@ function SplashCursor({
       gl.attachShader(program, vertexShader);
       gl.attachShader(program, fragmentShader);
       gl.linkProgram(program);
-      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) console.trace(gl.getProgramInfoLog(program));
+      pendingPrograms.push(program);
       return program;
+    }
+
+    // Calls `onReady` once every program has finished compiling, polling without blocking
+    function whenProgramsReady(onReady: () => void) {
+      const check = () => {
+        if (!isActive) return;
+        const done =
+          !parallelCompile ||
+          pendingPrograms.every((p) => gl.getProgramParameter(p, parallelCompile.COMPLETION_STATUS_KHR));
+        if (!done) {
+          requestAnimationFrame(check);
+          return;
+        }
+        pendingPrograms.forEach((p) => {
+          if (!gl.getProgramParameter(p, gl.LINK_STATUS)) console.trace(gl.getProgramInfoLog(p));
+        });
+        onReady();
+      };
+      check();
     }
 
     function getUniforms(program: any) {
@@ -324,7 +430,7 @@ function SplashCursor({
       const shader = gl.createShader(type)!;
       gl.shaderSource(shader, source);
       gl.compileShader(shader);
-      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) console.trace(gl.getShaderInfoLog(shader));
+      // Compile status is checked via the program link status once compilation completes
       return shader;
     }
 
@@ -800,6 +906,20 @@ function SplashCursor({
       applyInputs();
       step(dt);
       render(null);
+      trackFrameCost();
+
+      if (Date.now() - lastInputAt > IDLE_AFTER_MS) {
+        // Smoke has faded: present a clear frame and stop until the next input
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        gl.clearColor(0.0, 0.0, 0.0, 0.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        sleeping = true;
+        // A hidden canvas isn't composited at all, so the idle overlay costs nothing
+        canvas.style.visibility = 'hidden';
+        animationFrameId.current = null;
+        return;
+      }
       animationFrameId.current = requestAnimationFrame(updateFrame);
     }
 
@@ -813,8 +933,8 @@ function SplashCursor({
 
     function resizeCanvas() {
       if (!canvas) return false;
-      let width = scaleByPixelRatio(canvas.clientWidth);
-      let height = scaleByPixelRatio(canvas.clientHeight);
+      let width = scaleByPixelRatio(window.innerWidth);
+      let height = scaleByPixelRatio(window.innerHeight);
       if (canvas.width !== width || canvas.height !== height) {
         canvas.width = width;
         canvas.height = height;
@@ -1085,7 +1205,7 @@ function SplashCursor({
     }
 
     function scaleByPixelRatio(input: number) {
-      const pixelRatio = window.devicePixelRatio || 1;
+      const pixelRatio = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
       return Math.floor(input * pixelRatio);
     }
 
@@ -1101,9 +1221,10 @@ function SplashCursor({
 
     // Named event handlers for proper cleanup
     function handleMouseDown(e: MouseEvent) {
-      if (onlyDarkBackground && !isElementBackgroundDark(e.clientX, e.clientY)) {
+      if (onlyDarkBackground && !isDarkAt(e.clientX, e.clientY)) {
         return;
       }
+      wake();
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
       let posY = scaleByPixelRatio(e.clientY);
@@ -1113,11 +1234,12 @@ function SplashCursor({
 
     let firstMouseMoveHandled = false;
     function handleMouseMove(e: MouseEvent) {
-      if (onlyDarkBackground && !isElementBackgroundDark(e.clientX, e.clientY)) {
+      if (onlyDarkBackground && !isDarkAt(e.clientX, e.clientY)) {
         pointers[0].down = false;
         pointers[0].moved = false;
         return;
       }
+      wake();
 
       let pointer = pointers[0];
       let posX = scaleByPixelRatio(e.clientX);
@@ -1135,9 +1257,10 @@ function SplashCursor({
       const touches = e.targetTouches;
       let pointer = pointers[0];
       for (let i = 0; i < touches.length; i++) {
-        if (onlyDarkBackground && !isElementBackgroundDark(touches[i].clientX, touches[i].clientY)) {
+        if (onlyDarkBackground && !isDarkAt(touches[i].clientX, touches[i].clientY)) {
           continue;
         }
+        wake();
         let posX = scaleByPixelRatio(touches[i].clientX);
         let posY = scaleByPixelRatio(touches[i].clientY);
         updatePointerDownData(pointer, touches[i].identifier, posX, posY);
@@ -1148,11 +1271,12 @@ function SplashCursor({
       const touches = e.targetTouches;
       let pointer = pointers[0];
       for (let i = 0; i < touches.length; i++) {
-        if (onlyDarkBackground && !isElementBackgroundDark(touches[i].clientX, touches[i].clientY)) {
+        if (onlyDarkBackground && !isDarkAt(touches[i].clientX, touches[i].clientY)) {
           pointer.down = false;
           pointer.moved = false;
           continue;
         }
+        wake();
         let posX = scaleByPixelRatio(touches[i].clientX);
         let posY = scaleByPixelRatio(touches[i].clientY);
         updatePointerMoveData(pointer, posX, posY, pointer.color);
@@ -1174,7 +1298,14 @@ function SplashCursor({
     window.addEventListener('touchmove', handleTouchMove, false);
     window.addEventListener('touchend', handleTouchEnd);
 
-    updateFrame();
+    // Start simulating once the shaders have compiled in the background
+    whenProgramsReady(() => {
+      if (!isActive) return;
+      lastUpdateTime = Date.now();
+      lastInputAt = Date.now();
+      canvas.style.visibility = 'visible';
+      updateFrame();
+    });
 
     // Cleanup function
     return () => {
@@ -1193,6 +1324,7 @@ function SplashCursor({
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('touchend', handleTouchEnd);
     };
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onlyDarkBackground]);
 
@@ -1214,7 +1346,9 @@ function SplashCursor({
         style={{
           width: '100vw',
           height: '100vh',
-          display: 'block'
+          display: 'block',
+          // Shown only while the simulation is running (see wake/sleep)
+          visibility: 'hidden'
         }}
       />
     </div>

@@ -4,16 +4,20 @@ import React, { useRef, useEffect, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { TransitionLink } from "@/components/transitions/PageTransitionContext";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, AudioWaveform, Cctv, Eraser, Mic, ScanText, Tags, type LucideIcon } from "lucide-react";
 import FocusInContractText from "@/components/reuseable/FocusInContractText";
 import curvedRibbonGallery, { CurvedRibbonController } from "@/components/reuseable/curvedRibbonGallery";
 import { PROJECTS, ProjectData } from "@/data/projects";
 import { TEAM_MEMBERS, TeamMember } from "@/data/team";
+import { AI_CAPABILITIES, AI_HELIX_IMAGES } from "@/data/aiModels";
+import { afterAppReady } from "@/lib/appReady";
 
 export { PROJECTS, type ProjectData, TEAM_MEMBERS, type TeamMember };
 
 const GALLERY_PROJECTS = PROJECTS.slice(0, 5);
-const SIX_PROJECTS = PROJECTS.slice(0, 6);
+
+// Icon per AI capability card (same order as AI_CAPABILITIES)
+const AI_ICONS: LucideIcon[] = [ScanText, AudioWaveform, Cctv, Mic, Eraser, Tags];
 
 export default function GallerySection() {
   const outerWrapperRef = useRef<HTMLDivElement>(null);
@@ -31,12 +35,15 @@ export default function GallerySection() {
   const gridCardRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const gridButtonRef = useRef<HTMLDivElement>(null);
   const helixControllerRef = useRef<CurvedRibbonController | null>(null);
+  // Latest scroll progress of the helix phase, applied when the helix is created lazily
+  const helixProgressRef = useRef(0);
 
   gridCardRefs.current = [];
 
   const [activeIndex, setActiveIndex] = useState(0);
   const activeIndexRef = useRef(0);
   const [isBtnHovered, setIsBtnHovered] = useState(false);
+  const [isWorkBtnHovered, setIsWorkBtnHovered] = useState(false);
 
   const isDraggingRef = useRef(false);
   const dragStartXRef = useRef(0);
@@ -71,12 +78,16 @@ export default function GallerySection() {
     if (typeof window === "undefined") return;
     gsap.registerPlugin(ScrollTrigger);
 
-    // Initialize WebGL Curved Ribbon Gallery in Discover slide
-    if (helixCanvasRef.current) {
-      const imageElements: HTMLImageElement[] = SIX_PROJECTS.map((p) => {
+    // Initialize the WebGL Curved Ribbon Gallery lazily: only once the intro has
+    // finished and this section is within ~2 screens, so its shader compile and
+    // image uploads never compete with the intro or the sections above.
+    const createHelix = () => {
+      if (!helixCanvasRef.current || helixControllerRef.current) return;
+      const imageElements: HTMLImageElement[] = AI_HELIX_IMAGES.map((src) => {
         const img = new Image();
         img.crossOrigin = "anonymous";
-        img.src = p.image;
+        img.decoding = "async";
+        img.src = src;
         return img;
       });
 
@@ -98,14 +109,29 @@ export default function GallerySection() {
           z: 540,
           backCardVisible: true,
           theme: "dark",
+          // Zoom the helix out on narrower screens so it fits (1:1 from 1300px up)
+          fitWidth: 1300,
+          minScale: 0.4,
+          maxPixelRatio: 1.5,
         });
 
-        controller.seek(0);
+        controller.seek(helixProgressRef.current);
         helixControllerRef.current = controller;
       } catch (err) {
         console.error("Helix initialization error:", err);
       }
-    }
+    };
+
+    let cancelHelix: (() => void) | null = null;
+    const helixNearObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting || cancelHelix) return;
+        helixNearObserver.disconnect();
+        cancelHelix = afterAppReady(createHelix, { timeout: 400 });
+      },
+      { rootMargin: "200% 0px 200% 0px" }
+    );
+    if (outerWrapperRef.current) helixNearObserver.observe(outerWrapperRef.current);
 
     const ctx = gsap.context(() => {
       const outer = outerWrapperRef.current;
@@ -241,13 +267,14 @@ export default function GallerySection() {
           ease: "none",
           duration: helixDuration,
           onUpdate: function () {
+            helixProgressRef.current = helixProgressObj.p;
             helixControllerRef.current?.seek(helixProgressObj.p);
           },
         },
         helixStartTime
       );
 
-      // PHASE 4: WHEN HELIX IS COMPLETE -> CARDS FLY IN FROM MULTIPLE CORNERS
+      // PHASE 4: WHEN HELIX IS COMPLETE -> AI MODEL CARDS FLY IN FROM MULTIPLE CORNERS
       const revealStartTime = helixStartTime + helixDuration * 0.85;
 
       // 1. Helix canvas fades out
@@ -259,7 +286,7 @@ export default function GallerySection() {
         );
       }
 
-      // 2. "DESIGN IN MOTION" text fades out completely
+      // 2. "AI DEVELOPMENT" text fades out completely
       if (editorialTextRef.current) {
         tl.to(
           editorialTextRef.current,
@@ -302,7 +329,7 @@ export default function GallerySection() {
         );
       });
 
-      // 5. Button emerges under assembled 6 cards
+      // 5. Button emerges under assembled 6 AI model cards
       if (gridButtonRef.current) {
         tl.fromTo(
           gridButtonRef.current,
@@ -312,19 +339,16 @@ export default function GallerySection() {
         );
       }
 
-      ScrollTrigger.refresh();
     }, outerWrapperRef);
-
-    const handleResize = () => ScrollTrigger.refresh();
-    window.addEventListener("resize", handleResize);
 
     return () => {
       ctx.revert();
+      helixNearObserver.disconnect();
+      cancelHelix?.();
       if (helixControllerRef.current) {
         helixControllerRef.current.destroy();
         helixControllerRef.current = null;
       }
-      window.removeEventListener("resize", handleResize);
     };
   }, [projectsScrollDistance, overviewSlideDistance, helixScrollDistance, gridRevealDistance]);
 
@@ -359,7 +383,8 @@ export default function GallerySection() {
                     src={proj.image}
                     alt={proj.title}
                     className="w-full h-full object-cover select-none transform scale-105 transition-transform duration-1000 ease-out"
-                    loading="eager"
+                    loading="lazy"
+                    decoding="async"
                   />
                 </div>
               ))}
@@ -367,13 +392,40 @@ export default function GallerySection() {
               <div className="absolute inset-0 bg-black/10 pointer-events-none" />
             </div>
 
-            <div className="absolute top-14 left-8 md:top-18 md:left-10 z-20 pointer-events-none max-w-3xl transition-all duration-500 mix-blend-difference">
-              <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight text-white leading-[0.93] mix-blend-difference">
-                {activeProject.title}
-              </h2>
-              <p className="text-sm sm:text-base md:text-lg text-white max-w-xl mt-4 font-normal leading-relaxed mix-blend-difference">
-                {activeProject.subtitle}
-              </p>
+            {/* No z-index here: a stacking context would isolate the inner blend from the images */}
+            <div className="absolute top-28 left-8 md:left-10 lg:top-18 pointer-events-none max-w-3xl transition-all duration-500">
+              <div className="mix-blend-difference">
+                <h2 className="text-4xl sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight text-white leading-[0.93] mix-blend-difference">
+                  {activeProject.title}
+                </h2>
+                <p className="text-sm sm:text-base md:text-lg text-white max-w-xl mt-4 font-normal leading-relaxed mix-blend-difference">
+                  {activeProject.subtitle}
+                </p>
+              </div>
+
+              {/* SEE ALL OUR WORK — outside the blend so it reads the same over light and dark shots */}
+              <TransitionLink
+                href="/work"
+                onMouseEnter={() => setIsWorkBtnHovered(true)}
+                onMouseLeave={() => setIsWorkBtnHovered(false)}
+                className="group relative mt-6 md:mt-8 inline-flex items-center gap-4 overflow-hidden rounded-full border border-white/30 bg-black/35 backdrop-blur-md py-1.5 pl-6 pr-1.5 text-xs sm:text-sm uppercase tracking-widest text-white no-underline pointer-events-auto cursor-pointer select-none shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-[color,border-color,box-shadow] duration-500 hover:border-white hover:text-black hover:shadow-[0_12px_40px_rgba(255,255,255,0.18)]"
+              >
+                {/* White fill sweeping in from the left */}
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 origin-left scale-x-0 rounded-full bg-white transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:scale-x-100"
+                />
+                <span className="relative z-10">
+                  <FocusInContractText isHovered={isWorkBtnHovered} as="span" duration={0.4}>
+                    SEE ALL OUR WORK
+                  </FocusInContractText>
+                </span>
+                {/* Arrow badge: arrow flies out top-right while a new one slides in */}
+                <span className="relative z-10 flex h-9 w-9 md:h-10 md:w-10 items-center justify-center overflow-hidden rounded-full bg-white text-black transition-colors duration-500 group-hover:bg-black group-hover:text-white">
+                  <ArrowUpRight className="size-4 transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:translate-x-6 group-hover:-translate-y-6" />
+                  <ArrowUpRight className="absolute size-4 -translate-x-6 translate-y-6 transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:translate-x-0 group-hover:translate-y-0" />
+                </span>
+              </TransitionLink>
             </div>
 
             {/* DOCK SHOWING 5 PROJECTS */}
@@ -426,37 +478,50 @@ export default function GallerySection() {
             </div>
           </div>
 
-          {/* SLIDE 2: DISCOVER WITH 3D HELIX & 6 PROJECTS IN CENTER */}
+          {/* SLIDE 2: AI SHOWCASE — 3D HELIX, THEN 6 AI MODELS IN CENTER */}
           <div
             data-theme="dark"
             className="relative w-[100vw] h-full shrink-0 bg-transparent text-white overflow-hidden select-none font-[family-name:var(--font-familjen)]"
           >
-            {/* LAYER 1: EDITORIAL TYPOGRAPHY ("DESIGN" / "MOTION") TRAVELING OUTSIDE TO OUTSIDE */}
+            {/* LAYER 1: EDITORIAL TYPOGRAPHY ("AI" / "DEVELOPMENT") TRAVELING OUTSIDE TO OUTSIDE */}
             <div
               ref={editorialTextRef}
               className="absolute inset-0 z-10 pointer-events-none flex flex-col justify-center items-center overflow-hidden will-change-transform select-none"
             >
-              <div className="w-full flex flex-col items-center justify-center space-y-2 sm:space-y-4 md:space-y-6">
-                {/* Line 1: DESIGN - starts outside left, traverses across, exits outside right */}
+              {/* Lines sit apart with a caption between them so the helix rarely covers a whole word */}
+              <div className="w-full flex flex-col items-center justify-center gap-16 sm:gap-20 md:gap-28 lg:gap-32">
+                {/* Line 1: AI - starts outside left, traverses across, exits outside right */}
                 <div
                   ref={designLineRef}
                   className="w-full flex justify-center will-change-transform"
                 >
-                  <h2 className="text-7xl sm:text-9xl md:text-[11rem] lg:text-[14rem] xl:text-[17rem] font-bold tracking-tighter text-white/85 leading-[0.84] uppercase whitespace-nowrap select-none">
-                    DESIGN
+                  <h2 className="text-5xl sm:text-7xl md:text-8xl lg:text-[7.5rem] xl:text-[9rem] font-medium tracking-tight text-white/90 leading-[0.9] uppercase whitespace-nowrap select-none">
+                    AI
                   </h2>
                 </div>
 
-                {/* Line 2: MOTION - starts outside right, traverses across, exits outside left */}
+                {/* Line 2: DEVELOPMENT - starts outside right, traverses across, exits outside left */}
                 <div
                   ref={motionLineRef}
                   className="w-full flex justify-center will-change-transform"
                 >
-                  <h2 className="text-7xl sm:text-9xl md:text-[11rem] lg:text-[14rem] xl:text-[17rem] font-bold tracking-tighter text-white/85 leading-[0.84] uppercase whitespace-nowrap select-none">
-                    MOTION
+                  <h2 className="text-5xl sm:text-7xl md:text-8xl lg:text-[7.5rem] xl:text-[9rem] font-medium tracking-tight text-white/90 leading-[0.9] uppercase whitespace-nowrap select-none">
+                    DEVELOPMENT
                   </h2>
                 </div>
               </div>
+
+              {/* Centre caption between the two lines */}
+              <p className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-max max-w-[80vw] text-center font-mono text-[11px] sm:text-xs uppercase tracking-widest leading-relaxed text-neutral-300">
+                Building intelligent products
+                <br />
+                with custom AI models.
+              </p>
+
+              {/* Bottom-left context line */}
+              <p className="absolute bottom-8 left-6 md:left-12 max-w-[260px] text-sm md:text-base leading-snug text-neutral-400">
+                Vision, audio and language models we design, train and integrate into real websites and apps.
+              </p>
             </div>
 
             {/* LAYER 2: 3D HELIX CURVED RIBBON WEBGL CANVAS CONTAINER */}
@@ -465,59 +530,68 @@ export default function GallerySection() {
               className="absolute inset-0 z-20 w-full h-full pointer-events-none will-change-transform"
             />
 
-            {/* LAYER 3: 6 PROJECTS CENTERED GRID (APPEARS WHEN HELIX CIRCLE IS COMPLETE) */}
+            {/* LAYER 3: 6 AI MODELS CENTERED GRID (APPEARS WHEN HELIX CIRCLE IS COMPLETE) */}
             <div
               ref={gridContainerRef}
               className="absolute inset-0 z-30 w-full h-full flex flex-col items-center justify-center px-4 sm:px-6 md:px-8 pointer-events-auto opacity-0 will-change-transform"
             >
               <div className="w-full max-w-[1440px] mx-auto flex flex-col items-center">
-                {/* 3x2 Grid: Team Members */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6 w-full">
-                  {TEAM_MEMBERS.map((member, idx) => (
-                    <TransitionLink
-                      key={member.id}
-                      ref={(el) => {
-                        if (el) gridCardRefs.current[idx] = el;
-                      }}
-                      href="/about"
-                      className="group relative block w-full aspect-[16/10] rounded-md overflow-hidden shadow-lg bg-neutral-900 transition-shadow duration-500 hover:shadow-2xl hover:-translate-y-1 will-change-transform"
-                    >
-                      <img
-                        src={member.image}
-                        alt={member.name}
-                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                        loading="lazy"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
-                      <div className="absolute bottom-3.5 left-4 right-4 text-white pointer-events-none">
-                        <span className="font-mono text-[10px] uppercase tracking-wider text-white/70 block">
-                          {member.role}
-                        </span>
-                        <div className="flex items-center justify-between gap-2 mt-0.5">
-                          <h4 className="text-base sm:text-lg font-medium tracking-tight text-white leading-tight">
-                            {member.name}
-                          </h4>
-                          {member.location && (
-                            <span className="font-mono text-[10px] text-white/50 tracking-wider uppercase hidden sm:inline-block">
-                              {member.location}
-                            </span>
-                          )}
+                {/* 3x2 Grid (2x3 on phones so all six fit one screen): AI models we have built and integrated */}
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-6 w-full">
+                  {AI_CAPABILITIES.map((model, idx) => {
+                    const Icon = AI_ICONS[idx] ?? Tags;
+                    return (
+                      <TransitionLink
+                        key={model.id}
+                        ref={(el) => {
+                          if (el) gridCardRefs.current[idx] = el;
+                        }}
+                        href="/contact"
+                        className="group relative block w-full aspect-[4/3] sm:aspect-[16/10] rounded-md overflow-hidden shadow-lg bg-neutral-900 transition-shadow duration-500 hover:shadow-2xl hover:-translate-y-1 will-change-transform"
+                      >
+                        <img
+                          src={model.image}
+                          alt={model.title}
+                          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent opacity-80 group-hover:opacity-95 transition-opacity" />
+
+                        {/* Task chip, Hugging Face style */}
+                        <div className="absolute top-2.5 left-2.5 sm:top-3.5 sm:left-4 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/45 backdrop-blur-md px-2 py-0.5 sm:px-2.5 sm:py-1 text-white pointer-events-none">
+                          <Icon className="w-3.5 h-3.5 shrink-0" strokeWidth={2} />
+                          <span className="font-mono text-[10px] uppercase tracking-wider">{model.modality}</span>
                         </div>
-                      </div>
-                    </TransitionLink>
-                  ))}
+
+                        <div className="absolute bottom-2.5 left-2.5 right-2.5 sm:bottom-3.5 sm:left-4 sm:right-4 text-white pointer-events-none">
+                          <span className="font-mono text-[9px] sm:text-[10px] uppercase tracking-wider text-white/70 block truncate">
+                            {model.task}
+                          </span>
+                          <div className="flex items-center justify-between gap-2 mt-0.5">
+                            <h4 className="text-sm sm:text-base md:text-lg font-medium tracking-tight text-white leading-tight">
+                              {model.title}
+                            </h4>
+                            <span className="font-mono text-[10px] text-white/50 tracking-wider uppercase hidden sm:inline-block">
+                              AI · {model.id}
+                            </span>
+                          </div>
+                        </div>
+                      </TransitionLink>
+                    );
+                  })}
                 </div>
 
                 {/* UNDERLINED ACTION BUTTON WITH ARROW & HOVER EFFECT */}
-                <div ref={gridButtonRef} className="mt-8 md:mt-10 will-change-transform">
+                <div ref={gridButtonRef} className="mt-6 sm:mt-8 md:mt-10 will-change-transform">
                   <TransitionLink
-                    href="/about"
+                    href="/contact"
                     onMouseEnter={() => setIsBtnHovered(true)}
                     onMouseLeave={() => setIsBtnHovered(false)}
                     className="group inline-flex items-center gap-2 border-b border-white/30 hover:border-white pb-1 transition-all duration-300 no-underline text-white text-sm sm:text-base uppercase tracking-widest font-normal cursor-pointer select-none"
                   >
                     <FocusInContractText isHovered={isBtnHovered} as="span" duration={0.4}>
-                      MEET THE ENTIRE TEAM
+                      BUILD YOUR AI MODEL WITH US
                     </FocusInContractText>
                     <ArrowUpRight className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 text-white" />
                   </TransitionLink>

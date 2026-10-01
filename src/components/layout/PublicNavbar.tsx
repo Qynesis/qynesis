@@ -4,24 +4,80 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX, X, Sparkles, Hamburger, Menu } from "lucide-react";
+import Image from "next/image";
 import Logo3DText from "@/components/reuseable/Logo3DText";
+import QynesisGlyph from "@/components/brand/QynesisGlyph";
 import { TransitionLink } from "@/components/transitions/PageTransitionContext";
 
 export default function PublicNavbar() {
   const [isMuted, setIsMuted] = useState(true);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   return (
     <>
       {/* ALWAYS-ON FIXED MIX-BLEND-DIFFERENCE LOGO (UNIVERSALLY ADAPTS OVER ANY LIGHT/DARK SECTION) */}
       <div className="fixed top-0 left-0 w-auto z-[130] px-6 py-5 md:px-12 md:py-6 pointer-events-auto mix-blend-difference">
-        <TransitionLink href="/" className="flex items-center gap-2 group no-underline">
-          <Logo3DText
-            text="QYNESIS"
-            initialDelay={3000}
-            interval={15000}
-            className="text-xl md:text-2xl font-normal tracking-wider uppercase font-mono text-white select-none"
-          />
+        <TransitionLink
+          href="/"
+          aria-label="Qynesis home"
+          className="relative flex items-center h-10 group no-underline"
+        >
+          {/* Full wordmark at the very top, collapses to the Q mark once scrolled */}
+          <AnimatePresence mode="wait" initial={false}>
+            {isScrolled ? (
+              <motion.span
+                key="mark"
+                className="block"
+                initial={{ opacity: 0, scale: 0.6, rotate: -90 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                exit={{ opacity: 0, scale: 0.6, rotate: 90 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {/* Sized to its rendered ~40px so Next serves a 48/96px file instead of
+                    a ~2000px one (decoding that stalled the first scroll) */}
+                <Image
+                  src="/logo-qynesis.png"
+                  alt="Qynesis"
+                  width={44}
+                  height={40}
+                  loading="eager"
+                  className="h-9 md:h-10 w-auto select-none"
+                />
+              </motion.span>
+            ) : (
+              <motion.span
+                key="wordmark"
+                className="block"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <Logo3DText
+                  text="QYNESIS"
+                  initialDelay={3000}
+                  interval={15000}
+                  className="text-xl md:text-2xl text-white select-none"
+                  renderChar={(_, i) => (
+                    <span
+                      className="flex h-full items-center"
+                      style={{ paddingRight: i < 6 ? "0.29em" : 0 }}
+                    >
+                      <QynesisGlyph index={i} />
+                    </span>
+                  )}
+                />
+              </motion.span>
+            )}
+          </AnimatePresence>
         </TransitionLink>
       </div>
 

@@ -18,6 +18,13 @@ export type Option = {
   backCardVisible?: boolean;
   theme?: "light" | "dark";
   direction?: "up" | "down" | "backward" | "forward";
+  /** Element width (px) at which the scene renders at 1:1. Narrower elements zoom the
+   *  whole ribbon out uniformly so it fits; omit to always render at 1:1. */
+  fitWidth?: number;
+  /** Lower bound for that zoom-out (default 0.4) */
+  minScale?: number;
+  /** Cap on device pixel ratio for the canvas (default 2) */
+  maxPixelRatio?: number;
 };
 
 export type CurvedRibbonController = (() => void) & {
@@ -79,6 +86,9 @@ export const curvedRibbonGallery = ({
   backCardVisible = true,
   theme = "light",
   direction = "backward",
+  fitWidth,
+  minScale = 0.4,
+  maxPixelRatio = 2,
 }: Option): CurvedRibbonController => {
   if (!element || images.length < 4 || images.some((image) => !image)) {
     throw new Error(
@@ -263,15 +273,14 @@ export const curvedRibbonGallery = ({
     }
   `;
 
+  // Shaders compile on the driver's threads; nothing queries their status until
+  // the driver reports completion, so building the helix never blocks a frame.
+  const parallelCompile = gl.getExtension("KHR_parallel_shader_compile");
+
   const createShader = (type: number, src: string) => {
     const s = gl.createShader(type)!;
     gl.shaderSource(s, src);
     gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-      const err = gl.getShaderInfoLog(s);
-      gl.deleteShader(s);
-      throw new Error(`Shader compile error: ${err}`);
-    }
     return s;
   };
 
@@ -280,12 +289,16 @@ export const curvedRibbonGallery = ({
     gl.attachShader(p, createShader(gl.VERTEX_SHADER, vs));
     gl.attachShader(p, createShader(gl.FRAGMENT_SHADER, fs));
     gl.linkProgram(p);
-    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
-      const err = gl.getProgramInfoLog(p);
-      gl.deleteProgram(p);
-      throw new Error(`Program link error: ${err}`);
-    }
     return p;
+  };
+
+  const isProgramDone = (p: WebGLProgram) =>
+    !parallelCompile || gl.getProgramParameter(p, parallelCompile.COMPLETION_STATUS_KHR);
+
+  const assertLinked = (p: WebGLProgram) => {
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) {
+      throw new Error(`Program link error: ${gl.getProgramInfoLog(p)}`);
+    }
   };
 
   const cardProg = createProgram(vsSource, fsSource);
@@ -346,6 +359,29 @@ export const curvedRibbonGallery = ({
   gl.bindBuffer(gl.ARRAY_BUFFER, railVbo);
   gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(railVertices), gl.STATIC_DRAW);
 
+  // Render scheduling: frames are drawn only while the canvas is on screen and
+  // something actually changed (scroll progress, a texture arriving, a resize)
+  let rAF = 0;
+  let dirty = true;
+  let onScreen = true;
+  let destroyed = false;
+  let requestRender = () => {}; // replaced once the render loop is defined
+
+  // Texture uploads are paced at one per frame so several images finishing
+  // their download together never stall a frame
+  const uploadQueue: Array<() => void> = [];
+  let uploadPump = 0;
+  const pumpUploads = () => {
+    uploadPump = 0;
+    if (destroyed) return;
+    uploadQueue.shift()?.();
+    if (uploadQueue.length) uploadPump = requestAnimationFrame(pumpUploads);
+  };
+  const queueUpload = (job: () => void) => {
+    uploadQueue.push(job);
+    if (!uploadPump) uploadPump = requestAnimationFrame(pumpUploads);
+  };
+
   // 5. Load WebGL Textures with automatic CORS and instant fallback
   const createFallbackCanvas = (index: number) => {
     const c = document.createElement("canvas");
@@ -384,26 +420,39 @@ export const curvedRibbonGallery = ({
       }
     };
 
-    upload(createFallbackCanvas(index));
+    // Instant 1px placeholder until the real image is decoded
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([17, 17, 19, 255]));
+
+    // Decode once, off the main thread, then upload the ready bitmap
+    const uploadBitmap = (bmp: ImageBitmap) =>
+      queueUpload(() => {
+        if (destroyed) {
+          bmp.close();
+          return;
+        }
+        upload(bmp);
+        bmp.close();
+        dirty = true;
+        requestRender();
+      });
 
     if (img.src) {
-      const corsImg = new Image();
-      corsImg.crossOrigin = "anonymous";
-      corsImg.onload = () => upload(corsImg);
-      corsImg.onerror = () => {
-        fetch(img.src, { mode: "cors" })
-          .then((r) => r.blob())
-          .then((blob) => createImageBitmap(blob))
-          .then((bmp) => upload(bmp))
-          .catch(() => {});
-      };
-      corsImg.src = img.src;
-
-      if (img.complete && img.naturalWidth) {
-        upload(img);
-      } else {
-        img.addEventListener("load", () => upload(img), { once: true });
-      }
+      img
+        .decode()
+        .then(() => createImageBitmap(img))
+        .then(uploadBitmap)
+        .catch(() => {
+          fetch(img.src, { mode: "cors" })
+            .then((r) => r.blob())
+            .then((blob) => createImageBitmap(blob))
+            .then(uploadBitmap)
+            .catch(() => {
+              // Image unavailable: show the labelled gradient card instead
+              upload(createFallbackCanvas(index));
+              dirty = true;
+              requestRender();
+            });
+        });
     }
 
     return tex;
@@ -414,16 +463,20 @@ export const curvedRibbonGallery = ({
   const viewMat = new Float32Array(16);
 
   const resize = () => {
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const dpr = Math.min(maxPixelRatio, window.devicePixelRatio || 1);
     const w = element.clientWidth || window.innerWidth;
     const h = element.clientHeight || window.innerHeight;
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     gl.viewport(0, 0, canvas.width, canvas.height);
 
-    const fov = 2 * Math.atan(h / (2 * perspective));
+    // 1 world unit = `scale` px at the z=0 plane; shrinks the scene on narrow screens
+    const scale = fitWidth ? Math.min(1, Math.max(minScale, w / fitWidth)) : 1;
+    const fov = 2 * Math.atan(h / scale / (2 * perspective));
     mat4.perspective(projMat, fov, w / h, 10, 4000);
     mat4.lookAt(viewMat, [0, 0, perspective], [0, 0, 0], [0, 1, 0]);
+    dirty = true;
+    requestRender();
   };
 
   window.addEventListener("resize", resize);
@@ -445,10 +498,64 @@ export const curvedRibbonGallery = ({
   let currentPos = startTravel;
   let targetPos = startTravel;
   let isPlaying = !scroll;
-  let rAF = 0;
   let lastTime = performance.now();
 
+  // Uniform / attribute locations: looked up once (after compilation completes)
+  // instead of on every frame
+  let programsReady = false;
+  const lookupLocations = () => ({
+    cardU: {
+      projection: gl.getUniformLocation(cardProg, "u_projection"),
+      view: gl.getUniformLocation(cardProg, "u_view"),
+      cardSize: gl.getUniformLocation(cardProg, "u_cardSize"),
+      radius: gl.getUniformLocation(cardProg, "u_radius"),
+      cosA: gl.getUniformLocation(cardProg, "u_cosA"),
+      sinA: gl.getUniformLocation(cardProg, "u_sinA"),
+      borderRadius: gl.getUniformLocation(cardProg, "u_borderRadius"),
+      dimBehind: gl.getUniformLocation(cardProg, "u_dimBehind"),
+      distance: gl.getUniformLocation(cardProg, "u_cardDistance"),
+      texture: gl.getUniformLocation(cardProg, "u_texture"),
+    },
+    cardA: {
+      position: gl.getAttribLocation(cardProg, "a_position"),
+      uv: gl.getAttribLocation(cardProg, "a_uv"),
+    },
+    railU: {
+      projection: gl.getUniformLocation(railProg, "u_projection"),
+      view: gl.getUniformLocation(railProg, "u_view"),
+      headS: gl.getUniformLocation(railProg, "u_headS"),
+      tailS: gl.getUniformLocation(railProg, "u_tailS"),
+      isBackward: gl.getUniformLocation(railProg, "u_isBackward"),
+    },
+    railA: {
+      position: gl.getAttribLocation(railProg, "a_position"),
+      s: gl.getAttribLocation(railProg, "a_s"),
+    },
+  });
+  let { cardU, cardA, railU, railA } = {} as ReturnType<typeof lookupLocations>;
+
+  requestRender = () => {
+    if (rAF || !onScreen || destroyed) return;
+    lastTime = performance.now();
+    rAF = requestAnimationFrame(render);
+  };
+
   const render = (time: number) => {
+    rAF = 0;
+    if (!onScreen || destroyed) return;
+
+    if (!programsReady) {
+      if (!isProgramDone(cardProg) || !isProgramDone(railProg)) {
+        rAF = requestAnimationFrame(render);
+        return;
+      }
+      assertLinked(cardProg);
+      assertLinked(railProg);
+      ({ cardU, cardA, railU, railA } = lookupLocations());
+      programsReady = true;
+      dirty = true;
+    }
+
     const dt = Math.min(64, time - lastTime);
     lastTime = time;
 
@@ -457,7 +564,13 @@ export const curvedRibbonGallery = ({
       if (targetPos > endTravel) targetPos = startTravel;
     }
 
-    currentPos += (targetPos - currentPos) * 0.14;
+    const delta = targetPos - currentPos;
+    const moving = Math.abs(delta) > 0.05;
+    currentPos = moving ? currentPos + delta * 0.14 : targetPos;
+
+    // Nothing changed since the last frame: skip drawing and let the loop sleep
+    if (!moving && !dirty && !isPlaying) return;
+    dirty = false;
 
     gl.clearColor(0, 0, 0, 0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
@@ -465,27 +578,27 @@ export const curvedRibbonGallery = ({
     // Render Continuous Aligned Ribbon Cards travelling along spiral
     gl.useProgram(cardProg);
     gl.depthMask(true);
-    gl.uniformMatrix4fv(gl.getUniformLocation(cardProg, "u_projection"), false, projMat);
-    gl.uniformMatrix4fv(gl.getUniformLocation(cardProg, "u_view"), false, viewMat);
-    gl.uniform2f(gl.getUniformLocation(cardProg, "u_cardSize"), resolvedWidth, resolvedHeight);
-    gl.uniform1f(gl.getUniformLocation(cardProg, "u_radius"), z);
-    gl.uniform1f(gl.getUniformLocation(cardProg, "u_cosA"), cosA);
-    gl.uniform1f(gl.getUniformLocation(cardProg, "u_sinA"), sinA);
-    gl.uniform1f(gl.getUniformLocation(cardProg, "u_borderRadius"), borderRadius);
-    gl.uniform1f(gl.getUniformLocation(cardProg, "u_dimBehind"), backCardVisible ? (theme === "light" ? 0.70 : 0.42) : 0.05);
+    gl.uniformMatrix4fv(cardU.projection, false, projMat);
+    gl.uniformMatrix4fv(cardU.view, false, viewMat);
+    gl.uniform2f(cardU.cardSize, resolvedWidth, resolvedHeight);
+    gl.uniform1f(cardU.radius, z);
+    gl.uniform1f(cardU.cosA, cosA);
+    gl.uniform1f(cardU.sinA, sinA);
+    gl.uniform1f(cardU.borderRadius, borderRadius);
+    gl.uniform1f(cardU.dimBehind, backCardVisible ? (theme === "light" ? 0.70 : 0.42) : 0.05);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, cardVbo);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cardIbo);
 
-    const aPosLoc = gl.getAttribLocation(cardProg, "a_position");
-    const aUvLoc = gl.getAttribLocation(cardProg, "a_uv");
+    const aPosLoc = cardA.position;
+    const aUvLoc = cardA.uv;
     gl.enableVertexAttribArray(aPosLoc);
     gl.enableVertexAttribArray(aUvLoc);
     gl.vertexAttribPointer(aPosLoc, 2, gl.FLOAT, false, 16, 0);
     gl.vertexAttribPointer(aUvLoc, 2, gl.FLOAT, false, 16, 8);
 
-    const distLoc = gl.getUniformLocation(cardProg, "u_cardDistance");
-    const texLoc = gl.getUniformLocation(cardProg, "u_texture");
+    const distLoc = cardU.distance;
+    const texLoc = cardU.texture;
     gl.uniform1i(texLoc, 0);
 
     // Compute exact continuous position along spiral for each card
@@ -519,8 +632,8 @@ export const curvedRibbonGallery = ({
     if (dividers) {
       gl.depthMask(false);
       gl.useProgram(railProg);
-      gl.uniformMatrix4fv(gl.getUniformLocation(railProg, "u_projection"), false, projMat);
-      gl.uniformMatrix4fv(gl.getUniformLocation(railProg, "u_view"), false, viewMat);
+      gl.uniformMatrix4fv(railU.projection, false, projMat);
+      gl.uniformMatrix4fv(railU.view, false, viewMat);
 
       // Line path travels from TOP to BOTTOM as cards travel from bottom to top:
       // When cards are at bottom (currentPos = startTravel), scrollProgress = 0 (line is at TOP).
@@ -537,13 +650,13 @@ export const curvedRibbonGallery = ({
       const tailProgress = Math.max(0, (scrollProgress - 0.35) / 0.65);
       const tailS = sTopStart + 2400 - tailProgress * (lineRange + 2800);
 
-      gl.uniform1f(gl.getUniformLocation(railProg, "u_headS"), headS);
-      gl.uniform1f(gl.getUniformLocation(railProg, "u_tailS"), tailS);
-      gl.uniform1f(gl.getUniformLocation(railProg, "u_isBackward"), 1.0);
+      gl.uniform1f(railU.headS, headS);
+      gl.uniform1f(railU.tailS, tailS);
+      gl.uniform1f(railU.isBackward, 1.0);
 
       gl.bindBuffer(gl.ARRAY_BUFFER, railVbo);
-      const posLoc = gl.getAttribLocation(railProg, "a_position");
-      const sLoc = gl.getAttribLocation(railProg, "a_s");
+      const posLoc = railA.position;
+      const sLoc = railA.s;
 
       // 4 floats per vertex: rx, ry, rz, s -> stride = 16 bytes
       gl.enableVertexAttribArray(posLoc);
@@ -560,10 +673,23 @@ export const curvedRibbonGallery = ({
       gl.depthMask(true);
     }
 
+    // Keep going while the ribbon is still easing toward its target
     rAF = requestAnimationFrame(render);
   };
 
-  rAF = requestAnimationFrame(render);
+  // Pause entirely while the canvas is off screen
+  const visibilityObserver = new IntersectionObserver(([entry]) => {
+    onScreen = entry.isIntersecting;
+    if (onScreen) {
+      dirty = true;
+      requestRender();
+    } else if (rAF) {
+      cancelAnimationFrame(rAF);
+      rAF = 0;
+    }
+  });
+  visibilityObserver.observe(element);
+  requestRender();
 
   // 8. Interactive Scroll & Pointer Dragging
   let isDragging = false;
@@ -575,6 +701,7 @@ export const curvedRibbonGallery = ({
     event.preventDefault();
     isPlaying = false;
     targetPos += (event.deltaY + event.deltaX) * 1.5;
+    requestRender();
   };
 
   const onPointerDown = (event: PointerEvent) => {
@@ -598,6 +725,7 @@ export const curvedRibbonGallery = ({
     velocity = delta;
 
     targetPos -= delta * 2.2;
+    requestRender();
   };
 
   const onPointerUp = (event: PointerEvent) => {
@@ -606,6 +734,7 @@ export const curvedRibbonGallery = ({
     canvas.style.cursor = drag ? "grab" : "default";
     try { canvas.releasePointerCapture(event.pointerId); } catch {}
     targetPos -= velocity * 8.0;
+    requestRender();
   };
 
   if (scroll) {
@@ -620,7 +749,10 @@ export const curvedRibbonGallery = ({
   }
 
   const destroy = () => {
+    destroyed = true;
     if (rAF) cancelAnimationFrame(rAF);
+    if (uploadPump) cancelAnimationFrame(uploadPump);
+    visibilityObserver.disconnect();
     window.removeEventListener("resize", resize);
     ro.disconnect();
     canvas.removeEventListener("wheel", onWheel);
@@ -642,13 +774,16 @@ export const curvedRibbonGallery = ({
     next: () => {
       isPlaying = false;
       targetPos += chord;
+      requestRender();
     },
     prev: () => {
       isPlaying = false;
       targetPos -= chord;
+      requestRender();
     },
     play: () => {
       isPlaying = true;
+      requestRender();
     },
     pause: () => {
       isPlaying = false;
@@ -656,14 +791,17 @@ export const curvedRibbonGallery = ({
     scrollTo: (index: number) => {
       isPlaying = false;
       targetPos = index * chord;
+      requestRender();
     },
     seek: (progress: number) => {
       isPlaying = false;
       targetPos = startTravel + progress * totalTravelRange;
+      requestRender();
     },
     setProgress: (progress: number) => {
       isPlaying = false;
       targetPos = startTravel + progress * totalTravelRange;
+      requestRender();
     },
   });
 

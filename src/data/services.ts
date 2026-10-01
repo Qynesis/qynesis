@@ -15,7 +15,7 @@ export const SERVICES: ServiceItem[] = [
   {
     id: "web-development",
     indexStr: "01",
-    title: "Website development",
+    title: "Website Development",
     slug: "website-development",
     tagline: "Architecting high-performance, cinematic digital experiences and scalable web platforms.",
     description:
@@ -34,9 +34,31 @@ export const SERVICES: ServiceItem[] = [
     posterImage: "https://images.unsplash.com/photo-1695634281254-e94a29d234c0?w=1200&auto=format&fit=crop&q=85",
   },
   {
-    id: "branding-design",
+    id: "ai-development-integration",
     indexStr: "02",
-    title: "Branding and design",
+    // Non-breaking space keeps "& Integration" together when the title wraps
+    title: "AI Development &\u00A0Integration",
+    slug: "ai-development-integration",
+    tagline: "Custom AI models designed, trained and woven directly into your websites and products.",
+    description:
+      "From vision and audio models to language-powered features, we build AI that solves real product problems and integrate it seamlessly into your web and mobile experiences.",
+    offeringsCol1: [
+      "Image-to-Text & OCR Models",
+      "Voice Detection & Speech-to-Text",
+      "AI Camera & Object Detection",
+    ],
+    offeringsCol2: [
+      "Background Removal & Segmentation",
+      "Image Classification Pipelines",
+      "AI API & Product Integration",
+    ],
+    videoSrc: "/Animate_reference_image_environment_1080p_20260921025358.mp4",
+    posterImage: "https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?w=1200&auto=format&fit=crop&q=85",
+  },
+  {
+    id: "branding-design",
+    indexStr: "03",
+    title: "Branding & Design",
     slug: "branding-and-design",
     tagline: "Sculpting iconic visual identities, design systems, and unforgettable spatial narratives.",
     description:
@@ -56,8 +78,8 @@ export const SERVICES: ServiceItem[] = [
   },
   {
     id: "crm-system",
-    indexStr: "03",
-    title: "CRM system",
+    indexStr: "04",
+    title: "CRM System",
     slug: "crm-system",
     tagline: "Custom workflow automation, client portals, and bespoke operational platforms.",
     description:
@@ -77,8 +99,8 @@ export const SERVICES: ServiceItem[] = [
   },
   {
     id: "e-commerce",
-    indexStr: "04",
-    title: "E-commerce",
+    indexStr: "05",
+    title: "E-Commerce",
     slug: "e-commerce",
     tagline: "Immersive commerce platforms engineered for emotional resonance and frictionless conversion.",
     description:
@@ -98,8 +120,8 @@ export const SERVICES: ServiceItem[] = [
   },
   {
     id: "app-development",
-    indexStr: "05",
-    title: "App development",
+    indexStr: "06",
+    title: "App Development",
     slug: "app-development",
     tagline: "Engineering native and cross-platform mobile ecosystems with seamless fluid performance.",
     description:
@@ -119,8 +141,8 @@ export const SERVICES: ServiceItem[] = [
   },
   {
     id: "seo-digital-marketing",
-    indexStr: "06",
-    title: "SEO & digital marketing",
+    indexStr: "07",
+    title: "SEO & Digital Marketing",
     slug: "seo-digital-marketing",
     tagline: "Data-driven search dominance, algorithmic visibility, and high-velocity growth channels.",
     description:
