@@ -6,7 +6,7 @@ import { ArrowUpRight } from "lucide-react";
 import FocusInContractText from "@/components/reuseable/FocusInContractText";
 // Music line-art wordmark temporarily disabled — keep for later
 // import InteractiveMusicLines from "@/components/reuseable/InteractiveMusicLines";
-import BrandWordmark from "@/components/brand/BrandWordmark";
+import BrandWordmark3D from "@/components/brand/BrandWordmark3D";
 import FooterAtmosphere from "../reuseable/FooterAtmosphere";
 
 export default function PublicFooter() {
@@ -95,7 +95,7 @@ export default function PublicFooter() {
                     href="mailto:hello@qynesis.com"
                     className="hover:underline text-white transition-colors"
                   >
-                    hello@qynesis.com
+                    sajjadhosenmahim@gmail.com
                   </a>
                 </p>
                 <p className="flex items-center">
@@ -104,7 +104,7 @@ export default function PublicFooter() {
                     href="tel:+919824182099"
                     className="hover:underline text-white transition-colors"
                   >
-                    +91 98241 82099
+                    +8801857589709
                   </a>
                 </p>
               </div>
@@ -153,9 +153,10 @@ export default function PublicFooter() {
           <InteractiveMusicLines />
         </div> */}
 
-        {/* BOTTOM GIANT SOLID BRAND WORDMARK (same lettering as the intro and navbar logo) */}
-        <div className="w-full mt-auto pt-2 md:pt-4 pb-8 md:pb-14 text-white">
-          <BrandWordmark />
+        {/* BOTTOM GIANT 3D BRAND WORDMARK (same lettering as the intro and navbar logo) */}
+        <div className="w-full mt-auto pt-2 md:pt-4 pb-8 md:pb-14 text-white/45">
+          <BrandWordmark3D />
+          {/* Flat outline alternative: <BrandWordmark variant="outline" /> */}
         </div>
       </div>
     </footer>

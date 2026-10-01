@@ -162,12 +162,15 @@ export default function PublicNavbar() {
         </TransitionLink>
       </div>
 
-      {/* MAIN TOP NAVBAR - RIGHT CONTROLS */}
+      {/* MAIN TOP NAVBAR - RIGHT CONTROLS
+          Difference-blended like the logo, so the white buttons turn dark over
+          light sections. The blend sits on the fixed bar itself: on a child it
+          would only blend inside the bar's own (transparent) layer. */}
       <nav
-        className="fixed top-0 left-0 right-0 z-[130] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none"
+        className="fixed top-0 left-0 right-0 z-[130] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none mix-blend-difference"
       >
         {/* Right Action Controls */}
-        <div className="flex items-center gap-3 md:gap-4 relative z-[130] pointer-events-auto mix-blend-difference">
+        <div className="flex items-center gap-3 md:gap-4 relative z-[130] pointer-events-auto">
           {/* Let's Talk CTA */}
           <TransitionLink
             href="/contact"
