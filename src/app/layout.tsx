@@ -21,10 +21,11 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Qynesis - Designed to mean purpose.",
-  description: "Websites, AI products, brands, and systems built for clarity, scale and impact.",
+  title: "Qynesis | Software Development & AI Solutions",
+  description:
+    "Qynesis builds custom software, modern websites, AI-powered products, and digital solutions that help businesses grow, scale, and move faster.",
   icons: {
-    icon: "/basekitfavicon.png",
+    icon: "/logo-qynesis.png",
   },
 };
 
@@ -56,9 +57,7 @@ export default function RootLayout({
         <PageTransitionProvider>
           <StoreProvider>
             <ThemeProvider>
-              <SmoothScrollProvider>
-                {children}
-              </SmoothScrollProvider>
+              <SmoothScrollProvider>{children}</SmoothScrollProvider>
               <Toaster position="top-right" richColors />
             </ThemeProvider>
           </StoreProvider>
@@ -67,4 +66,3 @@ export default function RootLayout({
     </html>
   );
 }
-

@@ -12,27 +12,31 @@ export interface ServiceItem {
 }
 
 export const SERVICES: ServiceItem[] = [
-  {
-    id: "web-development",
-    indexStr: "01",
-    title: "Website Development",
-    slug: "website-development",
-    tagline: "Architecting high-performance, cinematic digital experiences and scalable web platforms.",
-    description:
-      "We design and engineer bespoke web experiences with fluid motion, uncompromising speed, and pixel-precision frontend craftsmanship that elevates your brand beyond the noise.",
-    offeringsCol1: [
-      "Angular Website Development",
-      "Node.js Website Development",
-      "Vue.js Website Development",
-    ],
-    offeringsCol2: [
-      "Laravel Website Development",
-      "React Website Development",
-      "WordPress Website Development",
-    ],
-    videoSrc: "/Animate_reference_image_environment_1080p_20260921025358.mp4",
-    posterImage: "https://images.unsplash.com/photo-1695634281254-e94a29d234c0?w=1200&auto=format&fit=crop&q=85",
-  },
+
+{
+  id: "software-development",
+  indexStr: "01",
+  title: "Software Development",
+  slug: "software-development",
+  tagline:
+    "Engineering high-performance software, scalable digital products, and intelligent platforms built for growth.",
+  description:
+    "We design and engineer bespoke software solutions that combine thoughtful architecture, intuitive experiences, and reliable performance—from custom business platforms and SaaS products to complex web applications and scalable digital systems.",
+  offeringsCol1: [
+    "Custom Software Development",
+    "Web Application Development",
+    "SaaS Product Development",
+  ],
+  offeringsCol2: [
+    "Enterprise Software Solutions",
+    "API & Backend Development",
+    "Software Modernization",
+  ],
+  videoSrc:
+    "/Animate_reference_image_environment_1080p_20260921025358.mp4",
+  posterImage:
+    "https://images.unsplash.com/photo-1695634281254-e94a29d234c0?w=1200&auto=format&fit=crop&q=85",
+},
   {
     id: "ai-development-integration",
     indexStr: "02",
@@ -55,9 +59,34 @@ export const SERVICES: ServiceItem[] = [
     videoSrc: "/Animate_reference_image_environment_1080p_20260921025358.mp4",
     posterImage: "https://images.unsplash.com/photo-1697577418970-95d99b5a55cf?w=1200&auto=format&fit=crop&q=85",
   },
+{
+  id: "embedded-solutions",
+  indexStr: "03",
+  title: "Embedded Solutions",
+  slug: "embedded-solutions",
+  tagline:
+    "Engineering intelligent embedded systems, connected devices, and reliable hardware-software solutions built for the real world.",
+  description:
+    "We design and develop embedded solutions that bridge hardware and software—from device firmware and IoT systems to connected products and real-time applications, engineered for reliability, efficiency, and seamless integration.",
+  offeringsCol1: [
+    "Embedded Software Development",
+    "Firmware Development",
+    "IoT & Connected Devices",
+  ],
+  offeringsCol2: [
+    "Hardware-Software Integration",
+    "Real-Time Embedded Systems",
+    "Device & Sensor Integration",
+  ],
+  videoSrc:
+    "/Animate_reference_image_environment_1080p_20260921025358.mp4",
+  posterImage:
+    "https://images.unsplash.com/photo-1518770660439-4636190af475?w=1200&auto=format&fit=crop&q=85",
+},
+
   {
     id: "branding-design",
-    indexStr: "03",
+    indexStr: "04",
     title: "Branding & Design",
     slug: "branding-and-design",
     tagline: "Sculpting iconic visual identities, design systems, and unforgettable spatial narratives.",
@@ -78,7 +107,7 @@ export const SERVICES: ServiceItem[] = [
   },
   {
     id: "crm-system",
-    indexStr: "04",
+    indexStr: "05",
     title: "CRM System",
     slug: "crm-system",
     tagline: "Custom workflow automation, client portals, and bespoke operational platforms.",
@@ -99,7 +128,7 @@ export const SERVICES: ServiceItem[] = [
   },
   {
     id: "e-commerce",
-    indexStr: "05",
+    indexStr: "06",
     title: "E-Commerce",
     slug: "e-commerce",
     tagline: "Immersive commerce platforms engineered for emotional resonance and frictionless conversion.",
@@ -120,7 +149,7 @@ export const SERVICES: ServiceItem[] = [
   },
   {
     id: "app-development",
-    indexStr: "06",
+    indexStr: "07",
     title: "App Development",
     slug: "app-development",
     tagline: "Engineering native and cross-platform mobile ecosystems with seamless fluid performance.",
@@ -141,7 +170,7 @@ export const SERVICES: ServiceItem[] = [
   },
   {
     id: "seo-digital-marketing",
-    indexStr: "07",
+    indexStr: "08",
     title: "SEO & Digital Marketing",
     slug: "seo-digital-marketing",
     tagline: "Data-driven search dominance, algorithmic visibility, and high-velocity growth channels.",

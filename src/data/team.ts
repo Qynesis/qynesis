@@ -1,6 +1,7 @@
 import arafatPhoto from "@/assets/team-members/arafat-2.jpg";
 import armanPhoto from "@/assets/team-members/arman.jpeg";
 import sazzadPhoto from "@/assets/team-members/sazzad.png";
+import zayedPhoto from "@/assets/team-members/zayed.png"
 
 export interface TeamMember {
   id: string;
@@ -21,7 +22,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     discipline: "Art Direction & Brand Architecture",
     image: arafatPhoto.src,
     imagePosition: "50% 8%",
-    location: "Stockholm / Berlin",
+    location: "Chattogram, Bangladesh",
   },
   {
     id: "02",
@@ -30,7 +31,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     discipline: "WebGL & Interactive Systems",
     image: armanPhoto.src,
     imagePosition: "50% 5%",
-    location: "London / NYC",
+    location: "Dhaka, Bangladesh",
   },
   {
     id: "03",
@@ -38,16 +39,17 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Principal 3D & Motion Artist",
     discipline: "Cinematics & Spatial Design",
     image: sazzadPhoto.src,
-    imagePosition: "50% 30%",
-    location: "Copenhagen",
+    imagePosition: "50% 45%",
+    location: "Chattogram, Bangladesh",
   },
   {
     id: "04",
-    name: "Kaito Tanaka",
+    name: "Zayed Iqbal",
     role: "Lead Creative Technologist",
     discipline: "Generative AI & Shader Dev",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=1200&auto=format&fit=crop&q=85",
-    location: "Tokyo",
+    image: zayedPhoto.src,
+    imagePosition: "50% 30%",
+    location: "Dhaka, Bangladesh",
   },
   {
     id: "05",

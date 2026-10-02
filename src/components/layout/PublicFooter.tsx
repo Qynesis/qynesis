@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
-import { ArrowUpRight } from "lucide-react";
-import FocusInContractText from "@/components/reuseable/FocusInContractText";
+import CtaLink from "@/components/reuseable/CtaLink";
+import { useContactModals } from "@/components/contact/ContactModals";
 // Music line-art wordmark temporarily disabled — keep for later
 // import InteractiveMusicLines from "@/components/reuseable/InteractiveMusicLines";
 import BrandWordmark3D from "@/components/brand/BrandWordmark3D";
 import FooterAtmosphere from "../reuseable/FooterAtmosphere";
 
 export default function PublicFooter() {
-  const [isDiscussHovered, setIsDiscussHovered] = useState(false);
-  const [isBookHovered, setIsBookHovered] = useState(false);
+  const { openInquiry, openBooking } = useContactModals();
 
   return (
     <footer className="relative w-full min-h-screen flex flex-col text-white pt-28 overflow-hidden font-[family-name:var(--font-familjen)] select-none">
@@ -35,37 +34,18 @@ export default function PublicFooter() {
 
           {/* Right: Callout Action Links — identical block to Business Enquiry / Social below so edges line up */}
           <div className="w-full md:w-[min(36rem,48%)] md:shrink-0 grid grid-cols-1 sm:grid-cols-2 gap-x-12 gap-y-4 sm:gap-y-6 items-start md:pt-16">
-            <a
-              href="#discuss"
-              onMouseEnter={() => setIsDiscussHovered(true)}
-              onMouseLeave={() => setIsDiscussHovered(false)}
-              className="group inline-flex w-max items-center gap-2 whitespace-nowrap border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-base sm:text-lg uppercase tracking-widest font-normal"
-            >
-              <FocusInContractText
-                isHovered={isDiscussHovered}
-                as="span"
-                duration={0.4}
-              >
-                DISCUSS YOUR PROJECT
-              </FocusInContractText>
-              <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white" />
-            </a>
-
-            <a
-              href="#book"
-              onMouseEnter={() => setIsBookHovered(true)}
-              onMouseLeave={() => setIsBookHovered(false)}
-              className="group inline-flex w-max items-center gap-2 whitespace-nowrap border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-base sm:text-lg uppercase tracking-widest font-normal"
-            >
-              <FocusInContractText
-                isHovered={isBookHovered}
-                as="span"
-                duration={0.4}
-              >
-                BOOK A 30-MINUTE CALL
-              </FocusInContractText>
-              <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white" />
-            </a>
+            <CtaLink
+              label="Discuss your project"
+              onClick={() => openInquiry("Footer")}
+              className="whitespace-nowrap text-base sm:text-lg font-normal"
+              arrowClassName="size-3.5"
+            />
+            <CtaLink
+              label="Book a 30-minute call"
+              onClick={() => openBooking("Footer")}
+              className="whitespace-nowrap text-base sm:text-lg font-normal"
+              arrowClassName="size-3.5"
+            />
           </div>
         </div>
 
@@ -117,7 +97,7 @@ export default function PublicFooter() {
               </span>
               <div className="grid grid-cols-1 gap-y-2 gap-x-6 text-base md:text-lg font-normal text-neutral-200">
                 <a
-                  href="https://linkedin.com"
+                  href="https://www.linkedin.com/company/qynesis/"
                   target="_blank"
                   rel="noreferrer"
                   className=" transition-colors no-underline"
@@ -125,7 +105,7 @@ export default function PublicFooter() {
                   Linkedin
                 </a>
                 <a
-                  href="https://facebook.com"
+                  href="https://www.facebook.com/profile.php?id=61592801964199"
                   target="_blank"
                   rel="noreferrer"
                   className="transition-colors no-underline"

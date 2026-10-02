@@ -2,14 +2,17 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
-import { ArrowUpRight, Globe, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import FocusInContractText from "@/components/reuseable/FocusInContractText";
+import CtaLink from "@/components/reuseable/CtaLink";
+import { useContactModals } from "@/components/contact/ContactModals";
 
+// Third headline line: what the software and AI we build is engineered to do
 const phrases = [
-  "mean purpose.",
-  "shape digital direction.",
-  "scale global impact.",
-  "craft brand clarity.",
+  "move business forward.",
+  "think, learn & adapt.",
+  "scale with ambition.",
+  "turn ideas into impact.",
 ];
 
 export default function Banner() {
@@ -17,8 +20,7 @@ export default function Banner() {
   const heroTextRef = useRef<HTMLHeadingElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const [isDiscussHovered, setIsDiscussHovered] = useState(false);
-  const [isBookHovered, setIsBookHovered] = useState(false);
+  const { openInquiry, openBooking } = useContactModals();
 
   // Auto-pause video when scrolled out of view to free 100% GPU/CPU resources
   useEffect(() => {
@@ -120,15 +122,24 @@ export default function Banner() {
       <div className="relative z-10 mt-2 md:mt-4 max-w-4xl">
         <h1
           ref={heroTextRef}
-          className="text-4xl mt-24 md:mt-14 sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-tight leading-[0.98] text-white -ml-1"
+          className="text-4xl mt-24 md:mt-14 sm:text-6xl md:text-7xl lg:text-8xl font-normal tracking-wide leading-[0.98] text-white -ml-1"
         >
           <FocusInContractText
             trigger="mount"
             duration={0.45}
             staggerDelay={0.025}
-            className="text-white"
+            className="text-white mb-2"
           >
-            Designed to
+            Intelligent software,
+          </FocusInContractText>
+          <br />
+          <FocusInContractText
+            trigger="mount"
+            duration={0.45}
+            staggerDelay={0.025}
+            className="text-white mb-2"
+          >
+            engineered to
           </FocusInContractText>
           <br />
           <FocusInContractText
@@ -143,47 +154,28 @@ export default function Banner() {
         </h1>
 
         {/* Action Callouts */}
-        <div className="mt-8 md:mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 font-mono text-xs uppercase tracking-widest text-neutral-300">
-          <a
-            href="#discuss"
-            onMouseEnter={() => setIsDiscussHovered(true)}
-            onMouseLeave={() => setIsDiscussHovered(false)}
-            className="group flex items-center gap-2 border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-sm"
-          >
-            <FocusInContractText
-              isHovered={isDiscussHovered}
-              as="span"
-              duration={0.4}
-            >
-              DISCUSS YOUR PROJECT
-            </FocusInContractText>
-            <ArrowUpRight className="size-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white" />
-          </a>
-
-          <a
-            href="#book"
-            onMouseEnter={() => setIsBookHovered(true)}
-            onMouseLeave={() => setIsBookHovered(false)}
-            className="group flex items-center gap-2 border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-sm"
-          >
-            <FocusInContractText
-              isHovered={isBookHovered}
-              as="span"
-              duration={0.4}
-            >
-              BOOK A 30-MINUTE CALL
-            </FocusInContractText>
-            <ArrowUpRight className="size-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white" />
-          </a>
+        <div className="mt-14 md:mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-6 md:gap-8 font-mono text-xs uppercase tracking-widest text-neutral-300">
+          <CtaLink
+            label="Discuss your project"
+            onClick={() => openInquiry("Home hero")}
+            className="text-sm"
+            arrowClassName="size-5"
+          />
+          <CtaLink
+            label="Book a 30-minute call"
+            onClick={() => openBooking("Home hero")}
+            className="text-sm"
+            arrowClassName="size-5"
+          />
         </div>
       </div>
 
       {/* Subtle bottom scroll hint */}
       <div className="relative z-10 mb-8 flex items-center justify-between text-neutral-400 font-mono text-xs tracking-wider uppercase">
-        <span className="flex items-center gap-2">
+        {/* <span className="flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
           AVAILABLE FOR SELECT COMMISSIONS
-        </span>
+        </span> */}
         <span className="hidden md:flex items-center gap-1.5 opacity-60">
           SCROLL TO EXPLORE
           <ChevronDown className="size-3.5 animate-bounce" />

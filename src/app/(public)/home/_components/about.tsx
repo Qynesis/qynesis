@@ -15,7 +15,7 @@ export default function AboutSection() {
       <div className="relative z-10 w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
         {/* Left Column Label (Col 1-2) */}
         <div className="md:col-span-2">
-          <span className="text-base uppercase tracking-wide text-neutral-200 font-medium block">
+          <span className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-tight leading-[1.05] text-white">
             ABOUT
           </span>
         </div>
@@ -28,9 +28,10 @@ export default function AboutSection() {
             start="top 85%"
             end="bottom 40%"
             dimOpacity={0.18}
-            className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl text-start font-normal tracking-tight leading-[1.12] text-white"
+            className="text-3xl mt-0 md:mt-32 sm:text-4xl md:text-5xl lg:text-7xl text-start font-normal tracking-tight leading-[1.12] text-white"
           >
-            Qynesis is an independent digital studio crafting meaningful brand experiences through strategy, design, and technology.
+            Qynesis is an independent digital studio crafting meaningful brand
+            experiences through strategy, design, and technology.
           </ScrollTextReveal>
         </div>
 
@@ -40,14 +41,17 @@ export default function AboutSection() {
             {/* Left Tagline Callout (Col 3-7, Aligned with Qynesis statement left edge) */}
             <div className="md:col-span-5 space-y-2">
               <span className="text-base uppercase tracking-wide text-white block max-w-sm leading-relaxed font-medium">
-                WE DESIGN FOR LONGEVITY. CLARITY FIRST, CRAFT ALWAYS, BUILT TO SCALE.
+                WE DESIGN FOR LONGEVITY. CLARITY FIRST, CRAFT ALWAYS, BUILT TO
+                SCALE.
               </span>
             </div>
 
             {/* Right Mission Callout & Action Link (Col 8-12, Aligned to far right end) */}
             <div className="md:col-span-5 flex flex-col items-start space-y-6 max-w-lg md:ml-auto">
               <p className="text-xl md:text-2xl text-neutral-200 leading-relaxed font-normal">
-                Our mission is to make technology feel human by designing digital products that are intuitive, purposeful, and meaningful to people.
+                Our mission is to make technology feel human by designing
+                digital products that are intuitive, purposeful, and meaningful
+                to people.
               </p>
 
               {/* More About Us CTA Button */}
@@ -58,7 +62,11 @@ export default function AboutSection() {
                   onMouseLeave={() => setIsHovered(false)}
                   className="group inline-flex items-center gap-2 border-b border-white/30 pb-1 transition-all duration-300 no-underline text-white text-xs uppercase tracking-widest"
                 >
-                  <FocusInContractText isHovered={isHovered} as="span" duration={0.4}>
+                  <FocusInContractText
+                    isHovered={isHovered}
+                    as="span"
+                    duration={0.4}
+                  >
                     MORE ABOUT US
                   </FocusInContractText>
                   <ArrowUpRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white" />

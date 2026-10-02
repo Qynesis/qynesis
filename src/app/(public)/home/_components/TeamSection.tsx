@@ -131,9 +131,10 @@ export default function TeamSection() {
         data-theme="light"
         className="sticky top-0 w-full h-screen overflow-hidden bg-[#EAE9E5] text-[#141414] select-none font-[family-name:var(--font-familjen)]"
       >
-        <div className="relative z-10 w-full h-full flex flex-col justify-center px-6 md:px-12 py-20 md:py-24">
+        {/* Phones: laid out in the small viewport (svh) so the button never sits under the URL bar */}
+        <div className="relative z-10 w-full h-full max-sm:h-svh flex flex-col justify-center px-6 md:px-12 pt-20 pb-10 sm:py-20 md:py-24 lg:pt-18 lg:pb-8">
           {/* HEADER */}
-          <div className="w-full flex items-end justify-between gap-6 mb-6 md:mb-10">
+          <div className="w-full flex items-end justify-between gap-6 mb-6 md:mb-10 lg:mb-6">
             <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-tight leading-[0.95] text-[#141414]">
               Team Members
             </h2>
@@ -142,10 +143,12 @@ export default function TeamSection() {
             </span>
           </div>
 
-          {/* 3x2 GRID OF MEMBERS (sized so two rows + header + button fit one screen:
-              two rows of 32:23 cards are ~0.48x the grid width tall) */}
-          <div className="w-full mx-auto max-w-[min(1440px,calc((100vh-300px)*2.09))]">
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-5 md:gap-6 w-full">
+          {/* GRID OF MEMBERS. Phones: 2x3 filling the height left between header and
+              button, so portraits get tall cards. Desktop: 3x2 of 4:3 cards, sized so two
+              rows + header + button fit one screen (two rows are half the grid width tall,
+              so a width of 200vh - 500px leaves ~105px for header, button and padding) */}
+          <div className="w-full mx-auto max-sm:flex-1 max-sm:min-h-0 sm:max-w-[min(1440px,calc((100vh-300px)*2.09))] lg:max-w-[min(1440px,calc(200vh-500px))]">
+            <div className="grid grid-cols-2 max-sm:grid-rows-3 max-sm:h-full lg:grid-cols-3 gap-3 sm:gap-5 md:gap-6 w-full">
               {HOME_TEAM.map((member, idx) => (
                 <TransitionLink
                   key={member.id}
@@ -153,7 +156,7 @@ export default function TeamSection() {
                     cardRefs.current[idx] = el;
                   }}
                   href="/team"
-                  className="group relative block w-full aspect-[32/23] rounded-md overflow-hidden shadow-lg bg-neutral-900 transition-shadow duration-500 hover:shadow-2xl will-change-transform"
+                  className="group relative block w-full max-sm:h-full aspect-[32/23] max-sm:aspect-auto lg:aspect-4/3 rounded-md overflow-hidden shadow-lg bg-neutral-900 transition-shadow duration-500 hover:shadow-2xl will-change-transform"
                 >
                   <img
                     src={cardImage(member.image)}
@@ -185,7 +188,7 @@ export default function TeamSection() {
           </div>
 
           {/* ALL TEAM MEMBERS BUTTON */}
-          <div ref={buttonRef} className="mt-8 md:mt-10 flex justify-center will-change-transform">
+          <div ref={buttonRef} className="mt-6 md:mt-10 lg:mt-6 flex justify-center will-change-transform">
             <TransitionLink
               href="/team"
               onMouseEnter={() => setIsBtnHovered(true)}

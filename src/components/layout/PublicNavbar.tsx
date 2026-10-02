@@ -1,6 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useSyncExternalStore } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, VolumeX, X, Sparkles, Hamburger, Menu } from "lucide-react";
@@ -51,7 +56,9 @@ export default function PublicNavbar() {
     const [q, ...rest] = letters;
     const animated = [...letters, mark];
     const reset = () =>
-      gsap.set(animated, { clearProps: "opacity,transform,transformOrigin,filter" });
+      gsap.set(animated, {
+        clearProps: "opacity,transform,transformOrigin,filter",
+      });
 
     const tl = gsap.timeline({
       paused: true,
@@ -69,7 +76,13 @@ export default function PublicNavbar() {
     tl.fromTo(
       q,
       { opacity: 1, x: 0, scale: 1 },
-      { opacity: 0, x: 4, scale: 1.85, transformOrigin: "0% 50%", duration: 0.55 },
+      {
+        opacity: 0,
+        x: 4,
+        scale: 1.85,
+        transformOrigin: "0% 50%",
+        duration: 0.55,
+      },
       0.62,
     );
     tl.fromTo(
@@ -166,19 +179,18 @@ export default function PublicNavbar() {
           Difference-blended like the logo, so the white buttons turn dark over
           light sections. The blend sits on the fixed bar itself: on a child it
           would only blend inside the bar's own (transparent) layer. */}
-      <nav
-        className="fixed top-0 left-0 right-0 z-[130] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none mix-blend-difference"
-      >
+      <nav className="fixed top-0 left-0 right-0 z-[130] w-full bg-transparent border-transparent px-6 py-5 md:px-12 md:py-6 flex items-center justify-end pointer-events-none mix-blend-difference">
         {/* Right Action Controls */}
         <div className="flex items-center gap-3 md:gap-4 relative z-[130] pointer-events-auto">
           {/* Let's Talk CTA */}
           <TransitionLink
             href="/contact"
             onClick={() => setIsMenuOpen(false)}
-            className={`px-5 py-2 md:px-6 md:py-2.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all duration-300 no-underline cursor-pointer ${isMenuOpen
-              ? "bg-white text-black hover:bg-neutral-200"
-              : "border border-white/40 bg-transparent text-white hover:bg-white hover:text-black"
-              }`}
+            className={`px-5 py-2 md:px-6 md:py-2.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all duration-300 no-underline cursor-pointer ${
+              isMenuOpen
+                ? "bg-white text-black hover:bg-neutral-200"
+                : "border border-white/40 bg-transparent text-white hover:bg-white hover:text-black"
+            }`}
           >
             LET'S TALK
           </TransitionLink>
@@ -186,10 +198,11 @@ export default function PublicNavbar() {
           {/* Menu Trigger Button */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${isMenuOpen
-              ? "border border-white bg-white text-black hover:bg-neutral-100 shadow-sm"
-              : "border border-white/40 bg-transparent text-white hover:bg-white hover:text-black"
-              }`}
+            className={`px-4 py-2 md:px-5 md:py-2.5 rounded-full text-xs font-mono uppercase tracking-wider transition-all duration-300 flex items-center gap-1.5 cursor-pointer ${
+              isMenuOpen
+                ? "border border-white bg-white text-black hover:bg-neutral-100 shadow-sm"
+                : "border border-white/40 bg-transparent text-white hover:bg-white hover:text-black"
+            }`}
           >
             {isMenuOpen ? (
               <>
@@ -197,7 +210,10 @@ export default function PublicNavbar() {
               </>
             ) : (
               <>
-                MENU <span className="font-medium"><Menu className="w-3.5 h-3.5 stroke-[2.5]" /></span>
+                MENU{" "}
+                <span className="font-medium">
+                  <Menu className="w-3.5 h-3.5 stroke-[2.5]" />
+                </span>
               </>
             )}
           </button>
@@ -278,15 +294,25 @@ export default function PublicNavbar() {
                   </span>
                   <div className="font-sans text-sm font-semibold text-neutral-800 space-y-0.5">
                     <p>
-                      <span className="text-neutral-400 font-mono mr-2">E.</span>
-                      <a href="mailto:hello@qynesis.com" className="hover:underline text-neutral-900">
+                      <span className="text-neutral-400 font-mono mr-2">
+                        E.
+                      </span>
+                      <a
+                        href="mailto:hello@qynesis.com"
+                        className="hover:underline text-neutral-900"
+                      >
                         hello@qynesis.com
                       </a>
                     </p>
                     <p>
-                      <span className="text-neutral-400 font-mono mr-2">P.</span>
-                      <a href="tel:+919824182099" className="hover:underline text-neutral-900">
-                        +91 98241 82099
+                      <span className="text-neutral-400 font-mono mr-2">
+                        P.
+                      </span>
+                      <a
+                        href="tel:+919824182099"
+                        className="hover:underline text-neutral-900"
+                      >
+                        +8801857589709
                       </a>
                     </p>
                   </div>
@@ -298,16 +324,28 @@ export default function PublicNavbar() {
                     SOCIAL
                   </span>
                   <div className="grid grid-cols-2 gap-y-1 text-sm font-semibold text-neutral-800">
-                    <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-amber-600 transition-colors no-underline">
+                    <a
+                      href="https://www.linkedin.com/company/qynesis/"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-amber-600 transition-colors no-underline"
+                    >
                       Linkedin
                     </a>
-                    <a href="https://facebook.com" target="_blank" rel="noreferrer" className="hover:text-amber-600 transition-colors no-underline">
+                    <a
+                      href="https://www.facebook.com/profile.php?id=61592801964199"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-amber-600 transition-colors no-underline"
+                    >
                       Facebook
                     </a>
-                    <a href="https://dribbble.com" target="_blank" rel="noreferrer" className="hover:text-amber-600 transition-colors no-underline">
-                      Dribbble
-                    </a>
-                    <a href="https://instagram.com" target="_blank" rel="noreferrer" className="hover:text-amber-600 transition-colors no-underline">
+                    <a
+                      href="https://instagram.com"
+                      target="_blank"
+                      rel="noreferrer"
+                      className="hover:text-amber-600 transition-colors no-underline"
+                    >
                       Instagram
                     </a>
                   </div>
@@ -320,4 +358,3 @@ export default function PublicNavbar() {
     </>
   );
 }
-
