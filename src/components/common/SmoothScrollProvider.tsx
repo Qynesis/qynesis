@@ -5,6 +5,7 @@ import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { onAppReady } from "@/lib/appReady";
+import { isGestureGuarded } from "@/lib/scrollGuards";
 
 export default function SmoothScrollProvider({
   children,
@@ -32,6 +33,8 @@ export default function SmoothScrollProvider({
       wheelMultiplier: 1,
       touchMultiplier: 1.5,
       autoResize: true,
+      // Sections can take a gesture over (e.g. paging featured projects)
+      virtualScroll: (gesture) => !isGestureGuarded(gesture),
     });
 
     // Synchronize Lenis scroll position with GSAP ScrollTrigger

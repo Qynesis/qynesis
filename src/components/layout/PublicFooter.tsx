@@ -95,13 +95,13 @@ export default function PublicFooter() {
                     href="mailto:hello@qynesis.com"
                     className="hover:underline text-white transition-colors"
                   >
-                    sajjadhosenmahim@gmail.com
+                    hello@qynesis.com
                   </a>
                 </p>
                 <p className="flex items-center">
                   <span className="text-neutral-500 mr-2.5">P.</span>
                   <a
-                    href="tel:+919824182099"
+                    href="tel:+8801857589709"
                     className="hover:underline text-white transition-colors"
                   >
                     +8801857589709

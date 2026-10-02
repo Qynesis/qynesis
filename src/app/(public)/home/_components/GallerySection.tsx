@@ -3,6 +3,7 @@
 import React, { useRef, useEffect, useState, useCallback } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import type Lenis from "lenis";
 import { TransitionLink } from "@/components/transitions/PageTransitionContext";
 import { ArrowUpRight, AudioWaveform, Cctv, Eraser, Mic, ScanText, Tags, type LucideIcon } from "lucide-react";
 import FocusInContractText from "@/components/reuseable/FocusInContractText";
@@ -11,6 +12,7 @@ import { PROJECTS, ProjectData } from "@/data/projects";
 import { TEAM_MEMBERS, TeamMember } from "@/data/team";
 import { AI_CAPABILITIES, AI_HELIX_IMAGES } from "@/data/aiModels";
 import { afterAppReady } from "@/lib/appReady";
+import { addScrollGuard, type ScrollGesture } from "@/lib/scrollGuards";
 
 export { PROJECTS, type ProjectData, TEAM_MEMBERS, type TeamMember };
 
@@ -62,17 +64,11 @@ export default function GallerySection() {
     helixScrollDistance +
     gridRevealDistance;
 
-  const scrollToSlide = useCallback(
-    (index: number) => {
-      const outer = outerWrapperRef.current;
-      if (!outer) return;
-      const clamped = Math.max(0, Math.min(GALLERY_PROJECTS.length - 1, index));
-      const targetScroll =
-        outer.offsetTop + (clamped / (GALLERY_PROJECTS.length - 1)) * projectsScrollDistance;
-      window.scrollTo({ top: targetScroll, behavior: "smooth" });
-    },
-    [projectsScrollDistance]
-  );
+  // Glides to a project (set up with the scroll timeline, which knows where each one sits)
+  const goToProjectRef = useRef<((index: number) => void) | null>(null);
+  const scrollToSlide = useCallback((index: number) => {
+    goToProjectRef.current?.(index);
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -121,6 +117,11 @@ export default function GallerySection() {
         console.error("Helix initialization error:", err);
       }
     };
+
+    // Project paging (set up below with the timeline)
+    let removeScrollGuard: (() => void) | null = null;
+    let onSettleScroll: (() => void) | null = null;
+    let settleTimer = 0;
 
     let cancelHelix: (() => void) | null = null;
     const helixNearObserver = new IntersectionObserver(
@@ -181,6 +182,10 @@ export default function GallerySection() {
         gsap.set(gridButtonRef.current, { opacity: 0, y: 25, scale: 0.95 });
       }
 
+      const lastIndex = GALLERY_PROJECTS.length - 1;
+      // Set once the timeline is built (the trigger can update before that)
+      let timelineDuration = 0;
+
       const tl = gsap.timeline({
         scrollTrigger: {
           id: "gallery-sticky-timeline",
@@ -189,29 +194,22 @@ export default function GallerySection() {
           end: "bottom bottom",
           scrub: 1.0,
           invalidateOnRefresh: true,
-        },
-      });
-
-      // PHASE 1: 3 PROJECTS IN GALLERY DOCK
-      tl.to(cardTrack, { x: () => -computeMaxShift(), ease: "none", duration: projectsDuration }, 0);
-      tl.to(
-        { p: 0 },
-        {
-          p: 1,
-          ease: "none",
-          duration: projectsDuration,
-          onUpdate: function () {
-            const progress = this.targets()[0].p;
-            const raw = Math.round(progress * (GALLERY_PROJECTS.length - 1));
-            const idx = Math.max(0, Math.min(GALLERY_PROJECTS.length - 1, raw));
+          // The active project follows the scroll position itself rather than the
+          // smoothed timeline, so it switches as soon as the scroll gets there
+          onUpdate: (self) => {
+            if (!timelineDuration) return;
+            const phase = Math.min(1, (self.progress * timelineDuration) / projectsDuration);
+            const idx = Math.max(0, Math.min(lastIndex, Math.round(phase * lastIndex)));
             if (idx !== activeIndexRef.current) {
               activeIndexRef.current = idx;
               setActiveIndex(idx);
             }
           },
         },
-        0
-      );
+      });
+
+      // PHASE 1: 5 PROJECTS IN GALLERY DOCK
+      tl.to(cardTrack, { x: () => -computeMaxShift(), ease: "none", duration: projectsDuration }, 0);
 
       // PHASE 2: GALLERY -> DISCOVER PANEL HORIZONTAL SLIDE
       tl.to(foregroundTrack, { xPercent: -50, ease: "power2.inOut", duration: slideDuration }, projectsDuration);
@@ -339,9 +337,140 @@ export default function GallerySection() {
         );
       }
 
+      timelineDuration = tl.duration();
+
+      // ── ONE GESTURE PER PROJECT ─────────────────────────────────────────────
+      // While the projects are on screen, each wheel notch or swipe glides straight
+      // to the next (or previous) project instead of scrubbing ~1000px per project.
+      // Past the first or last project, scrolling carries on as normal.
+      const projectY = (index: number) => {
+        const st = tl.scrollTrigger;
+        if (!st) return 0;
+        return st.start + (index / lastIndex) * (projectsDuration / timelineDuration) * (st.end - st.start);
+      };
+      const nearestProject = (y: number) => {
+        const first = projectY(0);
+        const span = projectY(lastIndex) - first || 1;
+        return Math.max(0, Math.min(lastIndex, Math.round(((y - first) / span) * lastIndex)));
+      };
+      const getLenis = () => (window as Window & { __lenis?: Lenis }).__lenis;
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const easeInOutCubic = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+
+      let paging = false;
+      let lastGestureAt = 0;
+      let lastDelta = 0;
+      let gestureDelta = 0;
+      let gestureUsed = false; // this gesture has already moved a project
+      let gestureReleased = false; // this touch gesture was handed back to normal scrolling
+
+      const goTo = (index: number, duration = reduceMotion ? 0.35 : 0.9) => {
+        const y = projectY(Math.max(0, Math.min(lastIndex, index)));
+        const lenis = getLenis();
+        paging = true;
+        const finish = () => {
+          paging = false;
+        };
+        if (lenis) {
+          // lock: wheel input is ignored until the glide lands
+          lenis.scrollTo(y, { duration, easing: easeInOutCubic, lock: true, force: true, onComplete: finish });
+        } else {
+          window.scrollTo({ top: y, behavior: "smooth" });
+          window.setTimeout(finish, duration * 1000);
+        }
+      };
+      goToProjectRef.current = (index) => goTo(index);
+
+      removeScrollGuard = addScrollGuard(({ deltaY, event }: ScrollGesture) => {
+        const isTouch = event.type.startsWith("touch");
+        const now = performance.now();
+        const absDelta = Math.abs(deltaY);
+        // A new gesture: a fresh touch, a pause in the wheel stream, or a new
+        // push while a trackpad's inertia is still running out
+        if (
+          event.type === "touchstart" ||
+          (!isTouch && (now - lastGestureAt > 200 || (!paging && absDelta > 15 && absDelta > lastDelta * 1.6)))
+        ) {
+          gestureDelta = 0;
+          gestureUsed = false;
+          gestureReleased = false;
+        }
+        lastGestureAt = now;
+        lastDelta = absDelta;
+        // Never block taps; a touch gesture handed back stays native
+        if (event.type === "touchstart" || event.type === "touchend" || (isTouch && gestureReleased)) return false;
+
+        const dir = Math.sign(deltaY);
+        if (!dir) return false;
+        const y = window.scrollY;
+        const first = projectY(0);
+        const last = projectY(lastIndex);
+        // Not measured yet, or scrolling is paused (intro): leave it alone
+        if (last - first < 100 || getLenis()?.isStopped) return false;
+        const take = () => {
+          if (event.cancelable) event.preventDefault();
+          return true;
+        };
+
+        // Arriving from above or below: land on the first / last project
+        if (y < first - 2 || y > last + 2) {
+          if (paging) return false;
+          const target = (getLenis()?.targetScroll ?? y) + deltaY;
+          if (y < first && dir > 0 && target >= first) {
+            gestureUsed = true;
+            goTo(0);
+            return take();
+          }
+          if (y > last && dir < 0 && target <= last) {
+            gestureUsed = true;
+            goTo(lastIndex);
+            return take();
+          }
+          return false;
+        }
+
+        // Swallow the rest of a gesture while gliding, and anything left of a
+        // swipe that already moved (trackpads / touch send a stream per swipe)
+        if (paging) return take();
+        const discreteWheel = !isTouch && (absDelta >= 100 || (event as WheelEvent).deltaMode !== 0);
+        if (gestureUsed && !discreteWheel) return take();
+
+        const next = nearestProject(y) + dir;
+        if (next < 0 || next > lastIndex) {
+          // Past the first / last project: hand the scroll back
+          if (isTouch) gestureReleased = true;
+          return false;
+        }
+
+        gestureDelta += deltaY;
+        if (Math.abs(gestureDelta) < 30) return take();
+        gestureDelta = 0;
+        gestureUsed = true;
+        goTo(next);
+        return take();
+      });
+
+      // Scrolls that bypass gestures (keyboard, scrollbar, dock drag, touch
+      // momentum) settle onto the nearest project once they come to rest
+      onSettleScroll = () => {
+        window.clearTimeout(settleTimer);
+        settleTimer = window.setTimeout(() => {
+          if (paging || getLenis()?.isStopped) return;
+          const y = window.scrollY;
+          if (projectY(lastIndex) - projectY(0) < 100) return;
+          if (y <= projectY(0) + 2 || y >= projectY(lastIndex) - 2) return;
+          const index = nearestProject(y);
+          if (Math.abs(projectY(index) - y) > 2) goTo(index, reduceMotion ? 0.3 : 0.6);
+        }, 180);
+      };
+      window.addEventListener("scroll", onSettleScroll, { passive: true });
     }, outerWrapperRef);
 
     return () => {
+      removeScrollGuard?.();
+      if (onSettleScroll) window.removeEventListener("scroll", onSettleScroll);
+      window.clearTimeout(settleTimer);
+      goToProjectRef.current = null;
       ctx.revert();
       helixNearObserver.disconnect();
       cancelHelix?.();
@@ -426,6 +555,46 @@ export default function GallerySection() {
                   <ArrowUpRight className="absolute size-4 -translate-x-6 translate-y-6 transition-transform duration-500 ease-[cubic-bezier(0.76,0,0.24,1)] group-hover:translate-x-0 group-hover:translate-y-0" />
                 </span>
               </TransitionLink>
+            </div>
+
+            {/* SCROLL CUE + PROJECT COUNTER — one scroll moves one project. Sits just
+                above the thumbnail dock (right-aligned with it), so it never collides
+                with the title block; difference-blended so it reads over light shots. */}
+            <div className="absolute bottom-[254px] right-8 md:bottom-[287px] md:right-[72px] flex items-center gap-3.5 text-white mix-blend-difference pointer-events-none">
+              {/* Mouse with a rolling wheel */}
+              <span
+                aria-hidden="true"
+                className="flex h-9 w-[22px] shrink-0 justify-center rounded-full border border-white/70"
+              >
+                <span className="mt-1.5 h-2 w-[3px] rounded-full bg-white animate-scroll-cue" />
+              </span>
+              <div>
+                <p className="text-[10px] md:text-[11px] uppercase tracking-[0.3em] text-white/70">
+                  {activeIndex < GALLERY_PROJECTS.length - 1 ? "Scroll for next project" : "Scroll to continue"}
+                </p>
+                <div className="mt-1 flex items-center gap-2 text-xs tabular-nums">
+                  <span>{String(activeIndex + 1).padStart(2, "0")}</span>
+                  <span className="flex items-center pointer-events-auto">
+                    {GALLERY_PROJECTS.map((proj, idx) => (
+                      <button
+                        key={proj.id}
+                        type="button"
+                        onClick={() => scrollToSlide(idx)}
+                        aria-label={`Show project ${idx + 1}: ${proj.title}`}
+                        aria-current={idx === activeIndex ? "true" : undefined}
+                        className="group/seg cursor-pointer bg-transparent px-[3px] py-2"
+                      >
+                        <span
+                          className={`block h-[2px] rounded-full transition-all duration-500 ease-out ${
+                            idx === activeIndex ? "w-8 bg-white" : "w-3.5 bg-white/35 group-hover/seg:bg-white/70"
+                          }`}
+                        />
+                      </button>
+                    ))}
+                  </span>
+                  <span className="text-white/50">{String(GALLERY_PROJECTS.length).padStart(2, "0")}</span>
+                </div>
+              </div>
             </div>
 
             {/* DOCK SHOWING 5 PROJECTS */}

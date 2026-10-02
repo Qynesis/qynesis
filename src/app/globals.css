@@ -64,6 +64,26 @@
   --color-status-warning: var(--status-warning);
 }
 
+@theme {
+  /* Scroll cue: a mouse wheel rolling down and fading out */
+  --animate-scroll-cue: scroll-cue 1.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+
+  @keyframes scroll-cue {
+    0% {
+      transform: translateY(0);
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+    60%,
+    100% {
+      transform: translateY(12px);
+      opacity: 0;
+    }
+  }
+}
+
 :root {
   --primary-background: #ffffff;
   --light-background: #f1f5f9;

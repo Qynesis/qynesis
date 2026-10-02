@@ -2,7 +2,11 @@
 
 import React, { useState } from "react";
 import { ArrowDown, ArrowUpRight } from "lucide-react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import FocusInContractText from "@/components/reuseable/FocusInContractText";
 
 export default function ContactFormSection() {
@@ -17,7 +21,7 @@ export default function ContactFormSection() {
     "Web Development",
     "Mobile Apps",
     "3D & Motion",
-    "Consulting"
+    "Consulting",
   ];
 
   const budgetList = [
@@ -25,17 +29,18 @@ export default function ContactFormSection() {
     "$5k - $10k",
     "$10k - $25k",
     "$25k - $50k",
-    "$50k+"
+    "$50k+",
   ];
 
   return (
     <section className="w-full bg-[#070707] text-white pt-24 md:pt-32 pb-24 px-6 md:px-12 font-[family-name:var(--font-familjen)] selection:bg-amber-400 selection:text-black min-h-screen flex flex-col items-center">
-      
       {/* 
         Ultra-high specificity overrides:
         Ensures input fields, textareas, and popovers are 100% transparent.
       */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style
+        dangerouslySetInnerHTML={{
+          __html: `
         html body .contact-override form input,
         html body .contact-override form input:not([type="checkbox"]):not([type="radio"]),
         html body .contact-override form textarea,
@@ -93,41 +98,48 @@ export default function ContactFormSection() {
           background: rgba(255, 255, 255, 0.08) !important;
           color: #ffffff !important;
         }
-      `}} />
+      `,
+        }}
+      />
 
       {/* Heading */}
       <div className="max-w-4xl mx-auto text-center mb-16 md:mb-20">
         <span className="font-mono text-xs md:text-sm uppercase tracking-[0.2em] text-neutral-400 font-semibold block mb-8 leading-relaxed">
-          A SHORT CONVERSATION IS OFTEN<br/>THE BEST PLACE TO BEGIN.
+          A SHORT CONVERSATION IS OFTEN
+          <br />
+          THE BEST PLACE TO BEGIN.
         </span>
         <h1 className="text-6xl sm:text-7xl md:text-8xl lg:text-[100px] font-normal tracking-[-0.035em] mb-6 leading-[1.05]">
           Let's work together
         </h1>
         <p className="text-base md:text-lg text-neutral-400 leading-relaxed max-w-xl mx-auto">
-          We'd love to hear about your project.<br/>
+          We'd love to hear about your project.
+          <br />
           We usually reply within one business day.
         </p>
       </div>
 
       {/* Form Container */}
       <div className="w-full max-w-4xl mx-auto contact-override">
-        <form onSubmit={(e) => e.preventDefault()} className="contact-form grid grid-cols-1 md:grid-cols-2 gap-4">
-          
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="contact-form grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {/* Full Name */}
           <div className="md:col-span-1">
-            <input 
-              type="text" 
-              placeholder="Full Name" 
+            <input
+              type="text"
+              placeholder="Full Name"
               style={{ backgroundColor: "transparent" }}
               className="w-full h-12 px-5 focus:outline-none text-sm md:text-[15px] bg-transparent"
             />
           </div>
-          
+
           {/* Email address */}
           <div className="md:col-span-1">
-            <input 
-              type="email" 
-              placeholder="Email address" 
+            <input
+              type="email"
+              placeholder="Email address"
               style={{ backgroundColor: "transparent" }}
               className="w-full h-12 px-5 focus:outline-none text-sm md:text-[15px] bg-transparent"
             />
@@ -135,9 +147,9 @@ export default function ContactFormSection() {
 
           {/* Company / Website name */}
           <div className="md:col-span-1">
-            <input 
-              type="text" 
-              placeholder="Company / Website name" 
+            <input
+              type="text"
+              placeholder="Company / Website name"
               style={{ backgroundColor: "transparent" }}
               className="w-full h-12 px-5 focus:outline-none text-sm md:text-[15px] bg-transparent"
             />
@@ -156,7 +168,7 @@ export default function ContactFormSection() {
                 </span>
                 <ArrowDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
               </PopoverTrigger>
-              <PopoverContent 
+              <PopoverContent
                 align="start"
                 sideOffset={4}
                 className="contact-popover w-[var(--anchor-width)] !bg-[#070707]/85 backdrop-blur-xl border border-[#22262e] rounded-md p-1 shadow-2xl z-50"
@@ -180,8 +192,8 @@ export default function ContactFormSection() {
 
           {/* Share a little about your goals... */}
           <div className="md:col-span-2">
-            <textarea 
-              placeholder="Share a little about your goals, timeline, and requirements..." 
+            <textarea
+              placeholder="Share a little about your goals, timeline, and requirements..."
               rows={4}
               style={{ backgroundColor: "transparent" }}
               className="w-full p-5 focus:outline-none text-sm md:text-[15px] resize-none bg-transparent"
@@ -201,7 +213,7 @@ export default function ContactFormSection() {
                 </span>
                 <ArrowDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
               </PopoverTrigger>
-              <PopoverContent 
+              <PopoverContent
                 align="start"
                 sideOffset={4}
                 className="contact-popover w-[var(--anchor-width)] !bg-[#070707]/85 backdrop-blur-xl border border-[#22262e] rounded-md p-1 shadow-2xl z-50"
@@ -225,20 +237,23 @@ export default function ContactFormSection() {
 
           {/* SEND INQUIRY: Reusable button matching design system */}
           <div className="md:col-span-1 flex items-center md:items-end justify-end pb-2">
-            <button 
+            <button
               type="submit"
               onMouseEnter={() => setIsSendHovered(true)}
               onMouseLeave={() => setIsSendHovered(false)}
               style={{ backgroundColor: "transparent" }}
               className="group inline-flex items-center justify-between w-full max-w-[260px] border-b border-white/60 hover:border-white pb-2.5 transition-all duration-300 text-white font-mono text-sm uppercase tracking-widest cursor-pointer bg-transparent"
             >
-              <FocusInContractText isHovered={isSendHovered} as="span" duration={0.4}>
+              <FocusInContractText
+                isHovered={isSendHovered}
+                as="span"
+                duration={0.4}
+              >
                 SEND INQUIRY
               </FocusInContractText>
               <ArrowUpRight className="size-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white shrink-0" />
             </button>
           </div>
-
         </form>
 
         {/* Divider OR */}
@@ -260,26 +275,27 @@ export default function ContactFormSection() {
             style={{ backgroundColor: "transparent" }}
             className="group inline-flex items-center gap-2 border-b border-white/40 hover:border-white pb-1.5 transition-all duration-300 no-underline text-white font-mono text-xs md:text-sm uppercase tracking-widest cursor-pointer bg-transparent"
           >
-            <FocusInContractText isHovered={isBookHovered} as="span" duration={0.4}>
+            <FocusInContractText
+              isHovered={isBookHovered}
+              as="span"
+              duration={0.4}
+            >
               BOOK A 30-MINUTE CALL
             </FocusInContractText>
             <ArrowUpRight className="size-4 md:size-5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-300 text-white shrink-0" />
           </a>
-          
+
           <div className="text-neutral-400 text-sm md:text-[15px] flex items-center justify-center">
             <span>Prefer email?</span>
-            <a 
-              href="mailto:hello@trionn.com" 
+            <a
+              href="mailto:hello@qynesis.com"
               className="text-white hover:text-neutral-300 ml-1.5 transition-colors font-medium"
             >
-              hello@trionn.com
+              hello@qynesis.com
             </a>
           </div>
         </div>
-
       </div>
-
     </section>
   );
 }
-
