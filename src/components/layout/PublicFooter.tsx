@@ -90,7 +90,7 @@ export default function PublicFooter() {
               </span>
               <div className="text-base md:text-lg font-normal text-neutral-200 space-y-2">
                 <p className="flex items-center">
-                  <span className="text-neutral-500 mr-2.5">E.</span>
+                  <span className="text-neutral-500 mr-2.5">Email</span>
                   <a
                     href="mailto:hello@qynesis.com"
                     className="hover:underline text-white transition-colors"
@@ -99,7 +99,7 @@ export default function PublicFooter() {
                   </a>
                 </p>
                 <p className="flex items-center">
-                  <span className="text-neutral-500 mr-2.5">P.</span>
+                  <span className="text-neutral-500 mr-2.5">Phone</span>
                   <a
                     href="tel:+8801857589709"
                     className="hover:underline text-white transition-colors"
