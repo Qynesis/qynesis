@@ -36,7 +36,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
   },
   {
     id: "03",
-    name: "Sazzad Hosen",
+    name: "Sazzad Mahim",
     role: "Principal 3D & Motion Artist",
     discipline: "Cinematics & Spatial Design",
     image: sazzadPhoto.src,
