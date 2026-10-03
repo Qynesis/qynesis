@@ -62,7 +62,7 @@ export default function AboutClosing() {
       <div className="mb-14 flex flex-col justify-between gap-8 md:mb-20 md:flex-row md:items-end">
         <div>
           <p className="mb-6 text-xs uppercase tracking-[0.3em] text-neutral-500">The people</p>
-          <h2 className="max-w-3xl text-5xl font-normal leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+          <h2 className="max-w-3xl text-4xl font-normal leading-[1.02] tracking-tight sm:text-5xl lg:text-6xl">
             Small team. Senior minds. Big ambitions.
           </h2>
         </div>
@@ -92,7 +92,7 @@ export default function AboutClosing() {
 
       {/* ── Closing call to action ── */}
       <div className="mt-32 border-t border-white/10 pt-20 md:mt-48 md:pt-28">
-        <h2 className="closing-title text-[14vw] font-normal leading-[0.92] tracking-[-0.04em] md:text-[10vw] xl:text-[150px]">
+        <h2 className="closing-title text-[12vw] font-normal leading-[0.92] tracking-[-0.04em] md:text-[8vw] xl:text-[120px]">
           <span className="block overflow-hidden pb-[0.06em]">
             <span className="closing-line block">Have an idea?</span>
           </span>

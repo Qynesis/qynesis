@@ -105,7 +105,7 @@ export default function ValuesSection() {
         {/* This stays sticky perfectly at top-24 without GSAP interference */}
         <div className="lg:col-span-5 flex flex-col gap-6 sticky top-24 h-fit">
           <div>
-            <h2 className="text-6xl sm:text-7xl lg:text-8xl font-normal tracking-tight">
+            <h2 className="text-5xl sm:text-6xl lg:text-7xl font-normal tracking-tight">
               Our values
             </h2>
           </div>

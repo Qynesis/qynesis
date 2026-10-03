@@ -2,6 +2,7 @@ import arafatPhoto from "@/assets/team-members/arafat-2.jpg";
 import armanPhoto from "@/assets/team-members/arman.jpeg";
 import sazzadPhoto from "@/assets/team-members/sazzad.png";
 import zayedPhoto from "@/assets/team-members/zayed.png"
+import naimPhoto from "@/assets/team-members/MdKaziNaim.png"
 
 export interface TeamMember {
   id: string;
@@ -53,11 +54,12 @@ export const TEAM_MEMBERS: TeamMember[] = [
   },
   {
     id: "05",
-    name: "Zoe Chen",
+    name: "Kazi Naim",
     role: "Design Systems & Product Lead",
     discipline: "Design Systems & UX Architecture",
-    image: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=1200&auto=format&fit=crop&q=85",
-    location: "San Francisco",
+    image: naimPhoto.src,
+    imagePosition: "50% 8%",
+    location: "Dhaka, Bangladesh",
   },
   {
     id: "06",

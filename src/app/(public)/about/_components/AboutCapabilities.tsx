@@ -44,7 +44,7 @@ export default function AboutCapabilities() {
       className="w-full bg-[#EAE9E5] px-6 py-24 text-[#111111] md:px-12 md:py-36 font-[family-name:var(--font-familjen)]"
     >
       <div className="cap-heading mb-14 flex flex-col justify-between gap-6 overflow-hidden md:mb-20 md:flex-row md:items-end">
-        <h2 className="text-6xl font-normal tracking-tight sm:text-7xl lg:text-8xl">What we do</h2>
+        <h2 className="text-5xl font-normal tracking-tight sm:text-6xl lg:text-7xl">What we do</h2>
         <p className="max-w-md text-base leading-relaxed text-neutral-600 md:text-lg">
           Seven disciplines, one team. Strategy, design and engineering stay in the same room, from the first
           sketch to the thousandth user.

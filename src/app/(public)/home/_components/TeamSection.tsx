@@ -56,9 +56,16 @@ export default function TeamSection() {
       cards.forEach((card, idx) => {
         if (!card) return;
         const dir = TEAM_FLY_DIRECTIONS[idx] || TEAM_FLY_DIRECTIONS[0];
-        gsap.set(card, { x: dir.x, y: dir.y, rotation: dir.rotate, scale: 0.82, opacity: 0 });
+        gsap.set(card, {
+          x: dir.x,
+          y: dir.y,
+          rotation: dir.rotate,
+          scale: 0.82,
+          opacity: 0,
+        });
       });
-      if (buttonRef.current) gsap.set(buttonRef.current, { opacity: 0, y: 25, scale: 0.95 });
+      if (buttonRef.current)
+        gsap.set(buttonRef.current, { opacity: 0, y: 25, scale: 0.95 });
       gsap.set(slats, { scaleY: 0 });
 
       const total = CARDS_SCROLL + HOLD_SCROLL + BLINDS_SCROLL;
@@ -88,7 +95,15 @@ export default function TeamSection() {
         tl.fromTo(
           card,
           { x: dir.x, y: dir.y, rotation: dir.rotate, scale: 0.82, opacity: 0 },
-          { x: 0, y: 0, rotation: 0, scale: 1, opacity: 1, ease: "power3.out", duration: cardFlyDuration },
+          {
+            x: 0,
+            y: 0,
+            rotation: 0,
+            scale: 1,
+            opacity: 1,
+            ease: "power3.out",
+            duration: cardFlyDuration,
+          },
           order * cardStagger,
         );
       });
@@ -98,7 +113,13 @@ export default function TeamSection() {
         tl.fromTo(
           buttonRef.current,
           { opacity: 0, y: 25, scale: 0.95 },
-          { opacity: 1, y: 0, scale: 1, ease: "power2.out", duration: cardsEnd * 0.2 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            ease: "power2.out",
+            duration: cardsEnd * 0.2,
+          },
           cardsEnd * 0.8,
         );
       }
@@ -125,7 +146,9 @@ export default function TeamSection() {
       ref={outerRef}
       data-theme="light"
       className="relative w-full"
-      style={{ height: `calc(100vh + ${CARDS_SCROLL + HOLD_SCROLL + BLINDS_SCROLL}px)` }}
+      style={{
+        height: `calc(100vh + ${CARDS_SCROLL + HOLD_SCROLL + BLINDS_SCROLL}px)`,
+      }}
     >
       <div
         data-theme="light"
@@ -135,11 +158,12 @@ export default function TeamSection() {
         <div className="relative z-10 w-full h-full max-sm:h-svh flex flex-col justify-center px-6 md:px-12 pt-20 pb-10 sm:py-20 md:py-24 lg:pt-18 lg:pb-8">
           {/* HEADER */}
           <div className="w-full flex items-end justify-between gap-6 mb-6 md:mb-10 lg:mb-6">
-            <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-tight leading-[0.95] text-[#141414]">
+            <h2 className="text-xl md:text-3xl lg:text-4xl font-normal tracking-tight leading-[0.95] text-[#141414]">
               Team Members
             </h2>
             <span className="hidden md:block font-mono text-xs uppercase tracking-widest text-neutral-500 max-w-[260px] text-right leading-relaxed">
-              The people designing, engineering and shipping every Qynesis build.
+              The people designing, engineering and shipping every Qynesis
+              build.
             </span>
           </div>
 
@@ -188,14 +212,21 @@ export default function TeamSection() {
           </div>
 
           {/* ALL TEAM MEMBERS BUTTON */}
-          <div ref={buttonRef} className="mt-6 md:mt-10 lg:mt-6 flex justify-center will-change-transform">
+          <div
+            ref={buttonRef}
+            className="mt-6 md:mt-10 lg:mt-6 flex justify-center will-change-transform"
+          >
             <TransitionLink
               href="/team"
               onMouseEnter={() => setIsBtnHovered(true)}
               onMouseLeave={() => setIsBtnHovered(false)}
               className="group inline-flex items-center gap-2 border-b border-black/30 hover:border-black pb-1 transition-all duration-300 no-underline text-[#141414] text-sm sm:text-base uppercase tracking-widest font-normal cursor-pointer select-none"
             >
-              <FocusInContractText isHovered={isBtnHovered} as="span" duration={0.4}>
+              <FocusInContractText
+                isHovered={isBtnHovered}
+                as="span"
+                duration={0.4}
+              >
                 ALL TEAM MEMBERS
               </FocusInContractText>
               <ArrowUpRight className="w-4 h-4 shrink-0 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />

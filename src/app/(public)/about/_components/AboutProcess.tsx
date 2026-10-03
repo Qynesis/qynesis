@@ -80,7 +80,7 @@ export default function AboutProcess() {
     >
       <div className="mb-16 grid grid-cols-1 gap-6 md:mb-24 lg:grid-cols-12">
         <p className="text-xs uppercase tracking-[0.3em] text-neutral-500 lg:col-span-3 lg:pt-4">How we work</p>
-        <h2 className="text-5xl font-normal leading-[1.02] tracking-tight sm:text-6xl lg:col-span-9 lg:text-7xl">
+        <h2 className="text-4xl font-normal leading-[1.02] tracking-tight sm:text-5xl lg:col-span-9 lg:text-6xl">
           A clear process, from first call to the product people love.
         </h2>
       </div>

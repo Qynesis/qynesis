@@ -41,7 +41,7 @@ export default function ServicesSection() {
       <div className="relative z-10 w-full">
         {/* SECTION HEADER: Small section label matching About/Footer */}
         <div className="w-full mb-12 md:mb-16">
-          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-normal tracking-tight leading-[1.05] text-white">
+          <h2 className="text-xl sm:text-5xl md:text-3xl lg:text-4xl font-normal tracking-tight leading-[1.05] text-white">
             Services
           </h2>
         </div>
@@ -54,8 +54,9 @@ export default function ServicesSection() {
             return (
               <div
                 key={service.id}
-                className={`w-full group relative transition-colors duration-500 overflow-hidden ${isExpanded ? "bg-[#0c0c0c]" : "bg-transparent cursor-pointer"
-                  }`}
+                className={`w-full group relative transition-colors duration-500 overflow-hidden ${
+                  isExpanded ? "bg-[#0c0c0c]" : "bg-transparent cursor-pointer"
+                }`}
               >
                 {/* ANIMATED HOVER BACKGROUND CURTAIN & GLOW (WHEN COLLAPSED) */}
                 {!isExpanded && (
@@ -86,18 +87,20 @@ export default function ServicesSection() {
                 >
                   <div className="flex flex-1 min-w-0 items-center gap-4 sm:gap-6 md:gap-8">
                     <span
-                      className={`shrink-0 text-xl md:text-2xl transition-all duration-500 ${isExpanded
-                        ? "rotate-45 text-white"
-                        : "text-neutral-400 group-hover:text-white group-hover:translate-x-1 group-hover:translate-y-1"
-                        }`}
+                      className={`shrink-0 text-xl md:text-2xl transition-all duration-500 ${
+                        isExpanded
+                          ? "rotate-45 text-white"
+                          : "text-neutral-400 group-hover:text-white group-hover:translate-x-1 group-hover:translate-y-1"
+                      }`}
                     >
                       <ArrowDownRight className="w-6 h-6 md:w-8 md:h-8" />
                     </span>
                     <span
-                      className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight leading-[1.1] md:leading-none transition-all duration-300 ${isExpanded
-                        ? "text-white"
-                        : "text-neutral-300 group-hover:text-white group-hover:translate-x-2"
-                        }`}
+                      className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-normal tracking-tight leading-[1.1] md:leading-none transition-all duration-300 ${
+                        isExpanded
+                          ? "text-white"
+                          : "text-neutral-300 group-hover:text-white group-hover:translate-x-2"
+                      }`}
                     >
                       {service.title}
                     </span>
@@ -105,21 +108,28 @@ export default function ServicesSection() {
 
                   <div className="flex shrink-0 items-center gap-6 md:gap-10 pl-4">
                     <span
-                      className={`font-mono text-xs md:text-sm tracking-wider transition-colors duration-300 ${isExpanded ? "text-white" : "text-neutral-400 group-hover:text-white"
-                        }`}
+                      className={`font-mono text-xs md:text-sm tracking-wider transition-colors duration-300 ${
+                        isExpanded
+                          ? "text-white"
+                          : "text-neutral-400 group-hover:text-white"
+                      }`}
                     >
                       {service.indexStr}
                     </span>
                     {/* Decorative ruler hash marks */}
                     <div
-                      className={`hidden sm:flex items-center gap-1.5 transition-opacity duration-300 ${isExpanded ? "opacity-40" : "opacity-20 group-hover:opacity-60"
-                        }`}
+                      className={`hidden sm:flex items-center gap-1.5 transition-opacity duration-300 ${
+                        isExpanded
+                          ? "opacity-40"
+                          : "opacity-20 group-hover:opacity-60"
+                      }`}
                     >
                       {Array.from({ length: 14 }).map((_, i) => (
                         <div
                           key={i}
-                          className={`w-[1px] ${i % 4 === 0 ? "h-4 bg-white" : "h-2 bg-white/60"
-                            }`}
+                          className={`w-[1px] ${
+                            i % 4 === 0 ? "h-4 bg-white" : "h-2 bg-white/60"
+                          }`}
                         />
                       ))}
                     </div>
@@ -198,7 +208,10 @@ export default function ServicesSection() {
 
                             {/* ACTION BUTTON WITH INTERACTIVE HOVER ANIMATION */}
                             <div className="pt-2 flex items-center gap-3">
-                              <ServiceDetailsButton slug={service.slug} title={service.title} />
+                              <ServiceDetailsButton
+                                slug={service.slug}
+                                title={service.title}
+                              />
                             </div>
                           </div>
 
@@ -227,7 +240,9 @@ export default function ServicesSection() {
                               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
                               <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs font-mono uppercase tracking-widest text-white/80 pointer-events-none">
                                 <span>{service.title}</span>
-                                <span className="text-neutral-400">QYNESIS // {service.indexStr}</span>
+                                <span className="text-neutral-400">
+                                  QYNESIS // {service.indexStr}
+                                </span>
                               </div>
                             </div>
                           </div>
