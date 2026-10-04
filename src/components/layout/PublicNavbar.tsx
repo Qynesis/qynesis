@@ -312,7 +312,7 @@ export default function PublicNavbar() {
                         href="tel:+919824182099"
                         className="hover:underline text-neutral-900"
                       >
-                        +8801857589709
+                        +8801351765492
                       </a>
                     </p>
                   </div>

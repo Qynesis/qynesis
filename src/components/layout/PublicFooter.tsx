@@ -81,10 +81,10 @@ export default function PublicFooter() {
                 <p className="flex items-center">
                   <span className="text-neutral-500 mr-2.5">Phone</span>
                   <a
-                    href="tel:+8801857589709"
+                    href="tel:+8801351765492"
                     className="hover:underline text-white transition-colors"
                   >
-                    +8801857589709
+                    +8801351765492
                   </a>
                 </p>
               </div>
