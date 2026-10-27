@@ -15,7 +15,7 @@ export default function AboutSection() {
       <div className="relative z-10 w-full grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-start">
         {/* Left Column Label (Col 1-2) */}
         <div className="md:col-span-2">
-          <span className="text-xl sm:text-5xl md:text-3xl lg:text-4xl font-normal tracking-tight leading-[1.05] text-white">
+          <span className="text-xl md:text-3xl lg:text-4xl font-normal tracking-tight leading-[1.05] text-white">
             ABOUT
           </span>
         </div>

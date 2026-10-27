@@ -20,10 +20,9 @@ export default function HomePage() {
         <InfiniteMarqueeBlinds />
       </QStage>
       <GallerySection />
-      <TeamSection />
+      {/* <TeamSection /> */}
       {/* Temporarily hidden — keep for later */}
       {/* <AiDesignSection /> */}
     </div>
   );
 }
-

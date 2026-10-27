@@ -8,11 +8,16 @@ import { TransitionLink } from "@/components/transitions/PageTransitionContext";
 import { setQStageCovered } from "@/lib/qStageEvents";
 
 // Client stories reel: a story card rides in this far below its row (as a share of
-// the viewport height) and rises over the last RISE_SPAN (share of the viewport
+// the viewport height) and rises over the last RISE_SPAN (share of its column's
 // width) of travel before its column is fully on screen — so every card that is
 // fully visible, including at the very start and end of the reel, sits level.
+// The lift is capped at MAX_LIFT_RATIO of the rise span, so on narrow (phone)
+// columns the card doesn't climb steeply over a few pixels of sideways travel.
 const STORY_LIFT = 0.28;
-const RISE_SPAN = 0.3;
+const RISE_SPAN = 0.6;
+const MAX_LIFT_RATIO = 0.5;
+// Timeline time spent resting on the last story once the reel has finished
+const STORY_HOLD = 0.7;
 
 export interface ProjectSlide {
   id: string;
@@ -177,23 +182,35 @@ export default function InfiniteMarqueeBlinds() {
       const columns = storyColumnRefs.current.filter(Boolean) as HTMLDivElement[];
       const cards = storyCardRefs.current.filter(Boolean) as HTMLElement[];
 
-      // Column positions are cached (and re-measured on refresh) so the per-frame
-      // rise only does arithmetic — no layout reads while scrolling
+      // Column positions and the viewport size are cached (and re-measured on
+      // refresh) so the per-frame rise only does arithmetic — no layout reads while
+      // scrolling, and a mobile address bar showing/hiding (which changes
+      // innerHeight mid-scroll without a refresh) can't make the cards jump.
       const setCardY = cards.map((card) => gsap.quickSetter(card, "y", "px"));
-      let columnBoxes: { left: number; width: number }[] = [];
+      let columnBoxes: { left: number; width: number; span: number; lift: number }[] = [];
+      let viewportWidth = window.innerWidth;
       const measureColumns = () => {
-        columnBoxes = columns.map((column) => ({ left: column.offsetLeft, width: column.offsetWidth }));
+        viewportWidth = window.innerWidth;
+        const maxLift = window.innerHeight * STORY_LIFT;
+        columnBoxes = columns.map((column) => {
+          const width = column.offsetWidth;
+          const span = Math.max(1, RISE_SPAN * width);
+          return {
+            left: column.offsetLeft,
+            width,
+            span,
+            lift: Math.min(maxLift, span * MAX_LIFT_RATIO),
+          };
+        });
       };
       const updateRise = () => {
         if (!track) return;
         const x = Number(gsap.getProperty(track, "x")) || 0;
-        const vw = window.innerWidth;
-        const lift = window.innerHeight * STORY_LIFT;
-        columnBoxes.forEach(({ left, width }, i) => {
+        columnBoxes.forEach(({ left, width, span, lift }, i) => {
           // 0 once the column is fully on screen (its left edge at or before vw - width)
-          const restLeft = vw - width;
-          const t = gsap.utils.clamp(0, 1, (left + x - restLeft) / (RISE_SPAN * vw));
-          setCardY[i]?.(lift * t * t); // eases out as the card settles into line
+          const restLeft = viewportWidth - width;
+          const t = gsap.utils.clamp(0, 1, (left + x - restLeft) / span);
+          setCardY[i]?.(Math.round(lift * t * t)); // eases out as the card settles into line
         });
       };
 
@@ -213,8 +230,10 @@ export default function InfiniteMarqueeBlinds() {
         scrollTrigger: {
           trigger: containerRef.current,
           start: "top top",
-          end: "bottom bottom", // wrapper is 480vh: 380vh of scroll while the stage is sticky
-          scrub: 1,
+          end: "bottom bottom", // wrapper is 540vh: 440vh of scroll while the stage is sticky
+          // Touch flicks scroll fast; a shorter catch-up keeps the reel from
+          // trailing the finger past the end of the section
+          scrub: ScrollTrigger.isTouch === 1 ? 0.4 : 1,
           invalidateOnRefresh: true,
           onRefresh: () => {
             measureColumns();
@@ -264,6 +283,10 @@ export default function InfiniteMarqueeBlinds() {
           1.6,
         );
       }
+
+      // Step 4: Hold on the last story so it settles (and can be read) before the
+      // stage un-sticks and the next section scrolls over it
+      masterTl.to({}, { duration: STORY_HOLD });
 
       measureColumns();
       updateRise();
@@ -517,8 +540,9 @@ export default function InfiniteMarqueeBlinds() {
     <div
       ref={containerRef}
       className="relative w-full"
-      // 100vh of stage + 380vh of scroll for the blinds / testimonial cards timeline
-      style={{ height: "480vh" }}
+      // 100vh of stage + 440vh of scroll for the blinds / testimonial cards timeline
+      // (380vh for the animation, ~60vh resting on the last story)
+      style={{ height: "540vh" }}
     >
       {/* CSS sticky stage (instead of a GSAP pin) so the hand-off to the next
           section is done by the browser and can't lag behind the scroll */}
